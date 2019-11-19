@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Swagger API
+  description: A simple API to illustrate OpenAPI concepts
+
+
+
+paths:
+  /story_exists/<storyid>:
+    get:
+      summary: Veriffy if the story <storyid> exists.
+      description:
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field that is equal to 1 if the story exists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: integer
+        '404':
+          description: The story does not exists
+
+
+
+  /story_list/<userid>:
+    get:
+      summary: Returns the list of stories that user <userid> have created.
+      description:
+      responses:
+        '200':    # status code
+          description: A JSON string with a stories field with the list of stories.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    stories:
+                      type: string
+        '404':
+          description: The user <userid> has not created any story.
+
+
+
+  /stories:
+    post:
+      summary: Create a new story and returns the list of all stories created.
+      description:
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field that is equal to -1 if the user who send the request is not registered; -2, -3 or -4 if there was an error in the creation of the story; -5 if the story is too long (over 100 characters); -6 if the story is too short and -7 if the story is invalid. In all of these cases is return an info message and the list of all stories created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: integer
+                    message:
+                      type: string
+                    stories:
+                      type: string
+    get:
+      summary: Returns the list of all stories created.
+      description:
+      responses:
+        '200':    # status code
+          description: If there is at least one story, a JSON string with the list of stories.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    stories:
+                      type: string
+        '404':
+          description: There is no story.
+
+
+
+  /stories/<storyid>:
+    get:
+      summary: Returns the story storyid
+      description:
+      responses:
+        '200':    # status code
+          description:  If the story exists, A JSON string is returned with the detail of the story in the story field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    story:
+                      type: string
+        '404':
+          description: The story does not exists.
+
+
+  /stories/random:
+    get:
+      summary: Return a random history if any history exists.
+      description:
+      responses:
+        '200':    # status code
+          description: If any stories have been published, a JSON string with a story field equal to the random story is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    story:
+                      type: string
+        '404':
+          description: There are no stories.
+
+
+  /stories/filter:
+    post:
+      summary: Returns the stories published in a certain interval of time.
+      description:
+      responses:
+        '200':    # status code
+          description: If any stories have been published in that period of time, a JSON string is returned with a stories field equal to the stories.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    stories:
+                      type: string
+        '404':
+          description: There are no stories in this period of time.
+
+
+
+  /stories/remove/<storyid>:
+    post:
+      summary: Remove the story identified by <storyid>.
+      description:
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; -1 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -2 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -3 if the story does not exist. In all cases an error message is also returned within the "message" field of the JSON file.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: integer
+                    message:
+                      type: string
+
+
+  /search_stories:
+    get:
+      summary: Look up in the stories the words contained in the 'text' field of the included JSON file.
+      description:
+      responses:
+        '200':    # status code
+          description: A JSON string with a stories field, or 404 if there are no stories.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stories:
+                    type: string
+        '404':
+          description: There are no stories who conatain the words inserted.
+
+
+
