@@ -1,19 +1,54 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Swagger API
-  description: A simple API to illustrate OpenAPI concepts
+  title: stories_service API
+  description: The stories service API
 
 
 
 paths:
   /story_exists/<storyid>:
     get:
-      summary: Veriffy if the story <storyid> exists.
-      description:
+      summary: Verify if the story storyid exists.
+      parameters:
+        - in: path
+          name: storyid
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the story to get
+      description: Verify if the story storyid exists.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to 1 if the story exists.
+          description: A JSON string with a result field that is equal to 1 if the story exists or is equal to 0 the story does not exists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                      type: integer
+                      description: >
+                        types:
+                          * `1` - the story is in the database
+                          * `0` - the story is not in the database
+
+
+
+  /story_list/<userid>:
+    get:
+      summary: Returns the list of stories that user userid have created.
+      parameters:
+        - in: path
+          name: userid
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get the stories who wrote
+      description: Returns the list of stories that user userid have created.
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field equal to 1 if the there are some stories; a result field equal to 0 if there are no stories; a result field equal to -1 if the user isn't registered and a result field equal to -2 if there was a timeout in the user service.
           content:
             application/json:
               schema:
@@ -21,37 +56,25 @@ paths:
                 properties:
                     result:
                       type: integer
-        '404':
-          description: The story does not exists
-
-
-
-  /story_list/<userid>:
-    get:
-      summary: Returns the list of stories that user <userid> have created.
-      description:
-      responses:
-        '200':    # status code
-          description: A JSON string with a stories field with the list of stories.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
+                      description: >
+                        types:
+                          * `1` - the user userid wrote some stories
+                          * `0` - the user userid didn't write any stories
+                          * `-1` - the user userid isn't registered
+                          * `-2` - there was a timeout in the user service
                     stories:
                       type: string
-        '404':
-          description: The user <userid> has not created any story.
+                      description: the stories written by the user userid.
 
 
 
   /stories:
     post:
       summary: Create a new story and returns the list of all stories created.
-      description:
+      description: Create a new story and returns the list of all stories created.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to -1 if the user who send the request is not registered; -2, -3 or -4 if there was an error in the creation of the story; -5 if the story is too long (over 100 characters); -6 if the story is too short and -7 if the story is invalid. In all of these cases is return an info message and the list of all stories created.
+          description: A JSON string with a result field that is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service and -8 if there was a timeout in the dice service. In all of these cases an info message and the list of all stories created are returned.
           content:
             application/json:
               schema:
@@ -59,90 +82,94 @@ paths:
                 properties:
                     result:
                       type: integer
+                      description: >
+                        types:
+                          * `1` - story created
+                          * `0` - the user isn't registered
+                          * `-1` - error during creation of the story (WrongFormatStoryError)
+                          * `-2` - error during creation of the story (WrongFormatDiceError)
+                          * `-3` - error during creation of the story (WrongFormatSingleDiceError)
+                          * `-4` - the story is too long (over 1000 characters)
+                          * `-5` - the story is too short
+                          * `-6` - the story is invalid
+                          * `-7` - there was a timeout in the user service
+                          * `-8` - there was a timeout in the dice service
                     message:
                       type: string
+                      description: >
+                        Messages:
+                         * `'Story created'` - The story was successfully created
+                         * `'The user does not exists'` - the user isn't registered
+                         * `'There was an error. Try again.'` - error during creation of the story (WrongFormatStoryError)
+                         * `'There was an error. Try again.'` - error during creation of the story (WrongFormatDiceError)
+                         * `'There was an error. Try again.'` - error during creation of the story (WrongFormatSingleDiceError)
+                         * `'The story is too long. The length is > 1000 characters.'` - the story is too long
+                         * `'The number of words of the story must greater or equal of the number of resulted faces.'` - the story is too short
+                         * `'Invalid story. Try again!'` - the story is invalid
+                         * `'Timeout: the user service is not responding'` - there was a timeout in the user service
+                         * `'Timeout: the dice service is not responding'` - there was a timeout in the dice service
                     stories:
                       type: string
+                      description: the list of stories of all users.
     get:
       summary: Returns the list of all stories created.
-      description:
+      description: Returns the list of all stories created.
       responses:
         '200':    # status code
-          description: If there is at least one story, a JSON string with the list of stories.
+          description: If there is at least one story, a JSON string is returned with a result field equal to 1 and the list of stories. Vice versa a JSON string is returned with a result field equal to 0.
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                    result:
+                      type: integer
+                      description: >
+                        types:
+                          * `1` - there are at least one story
+                          * `0` - there is no story
                     stories:
-                      type: string
-        '404':
-          description: There is no story.
+                      description: the list of stories.
 
 
 
   /stories/<storyid>:
     get:
       summary: Returns the story storyid
-      description:
+      parameters:
+        - in: path
+          name: storyid
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the story to get
+      description: Returns the story storyid
       responses:
         '200':    # status code
-          description:  If the story exists, A JSON string is returned with the detail of the story in the story field.
+          description:  If the story exists, A JSON string is returned with the field result equal to 1 and the story field equal to the story. Vice versa a JSON string is returned with the field result equal to 0.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                    story:
-                      type: string
-        '404':
-          description: The story does not exists.
+                  result:
+                    type: integer
+                    description: >
+                      types:
+                        * `1` - the story storyid is in the database.
+                        * `0` - The story is not in the database.
+                  story:
+                    type: string
+                    description: the story storyid, if exists.
 
 
   /stories/random:
     get:
       summary: Return a random history if any history exists.
-      description:
+      description: Return a random history if any history exists.
       responses:
         '200':    # status code
-          description: If any stories have been published, a JSON string with a story field equal to the random story is returned.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    story:
-                      type: string
-        '404':
-          description: There are no stories.
-
-
-  /stories/filter:
-    post:
-      summary: Returns the stories published in a certain interval of time.
-      description:
-      responses:
-        '200':    # status code
-          description: If any stories have been published in that period of time, a JSON string is returned with a stories field equal to the stories.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    stories:
-                      type: string
-        '404':
-          description: There are no stories in this period of time.
-
-
-
-  /stories/remove/<storyid>:
-    post:
-      summary: Remove the story identified by <storyid>.
-      description:
-      responses:
-        '200':    # status code
-          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; -1 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -2 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -3 if the story does not exist. In all cases an error message is also returned within the "message" field of the JSON file.
+          description: If any stories have been published, a JSON string with a result field equal to 1 and the story field equal to the random story is returned. Vice versa the result field is equal to 0 and no story is inserted.
           content:
             application/json:
               schema:
@@ -150,22 +177,108 @@ paths:
                 properties:
                     result:
                       type: integer
-                    message:
+                      description: >
+                        types:
+                          * `1` - there are at least one story.
+                          * `0` - there is no story.
+                    story:
                       type: string
+                      description: the random story, if there is at least one.
 
 
-  /search_stories:
-    get:
-      summary: Look up in the stories the words contained in the 'text' field of the included JSON file.
-      description:
+
+
+  /stories/filter:
+    post:
+      summary: Returns the stories published in a certain interval of time.
+      description: Returns the stories published in a certain interval of time.
       responses:
         '200':    # status code
-          description: A JSON string with a stories field, or 404 if there are no stories.
+          description: If any stories have been published in that period of time, a JSON string is returned with a result field equal to 1 and a stories field equal to the stories. Vice versa the result field is equal to 0. The result filed is equal to -1 if the initial date is greater than the final date. The result field is equal to -2 if there was a timeout in the serviece and a message of error is returned.
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  result:
+                    type: integer
+                    description: >
+                      types:
+                        * `1` - there are some stories in that interval.
+                        * `0` - there are no stories in that interval.
+                        * `-1` - the initial date is greater than the final date.
+                        * `-2` - Timeout: the service is not responding.
                   stories:
                     type: string
+                    description: the stories in that interval, if there are some.
+                  message:
+                    type: string
+                    description: >
+                      Messages:
+                       * `'Timeout: the service is not responding'` - There was a timeout.
+
+
+
+
+  /stories/remove/<storyid>:
+    post:
+      summary: Remove the story identified by storyid.
+      parameters:
+        - in: path
+          name: storyid
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the story to remove
+      description: Remove the story identified by storyid.
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; -1 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -2 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -3 if the story does not exist; -4 if there was a timeout in the service. In all cases an error message is also returned within the "message" field of the JSON file.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: integer
+                      description: >
+                        types:
+                          * `1` - Story successfully removed.
+                          * `0` - There was a problem in the deletion of the story.
+                          * `-1` - The story was written by another user.
+                          * `-2` - The story does not exists.
+                          * `-3` - Timeout: the user service is not responding
+                    message:
+                      type: string
+                      description: >
+                        Messages:
+                         * `'Story removed'`
+                         * `'There was a problem with the removal of the story. In particular in the deletion of the reactions'`
+                         * `'You cannot remove a story that was not written by you'`
+                         * `'The story you want to delete does not exist'`
+                         * `'Timeout: the user service is not responding'`
+
+
+  /search_stories:
+    get:
+      summary: Look up in the stories the words contained in the 'text' field of the included JSON file.
+      description: Look up in the stories the words contained in the 'text' field of the included JSON file.
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field equal to 1 if some stories are found, vice versa result field is equal to 0. If no text is inserted the result filed is equal to -1.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: integer
+                    description: >
+                      types:
+                        * `1` - At least one story has been found.
+                        * `0` - No history has been found.
+                        * `-1` - The string to search is empty
+                  stories:
+                    type: string
+                    description: The stories that match the searched string.
 

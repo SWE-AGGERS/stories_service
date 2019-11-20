@@ -1,14 +1,9 @@
 from stories_service.views import check_stories as cs
-from stories_service.views.check_stories import SizeDiceSetFacesError
 from stories_service.views.check_stories import TooSmallStoryError
 from stories_service.views.check_stories import WrongFormatDiceError
-from stories_service.views.check_stories import WrongFormatSingleDiceError
 from stories_service.views.check_stories import WrongFormatStoryError
-from stories_service.views.check_stories import WrongFormatSingleFaceError, InvalidStory
-import os
+from stories_service.views.check_stories import InvalidStory
 import unittest
-from stories_service import constants
-import requests
  
 class TestStory(unittest.TestCase):
  

@@ -1,12 +1,16 @@
-from flask import  abort, jsonify
+from flask import jsonify
+import json
 from sqlalchemy import func
 from flask import Blueprint, request
 from stories_service.database import db, Story
 from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatDiceError, WrongFormatSingleDiceError, WrongFormatSingleFaceError, WrongFormatStoryError
 import requests
+from requests.exceptions import Timeout
+import sys
 
 stories = Blueprint('stories', __name__)
 
+TIMEOUT = 5
 
 
 @stories.route('/story_exists/<storyid>')
@@ -24,12 +28,27 @@ def story_exists(storyid):
 
 @stories.route('/story_list/<userid>')
 def story_list(userid):
-    stories = db.session.query(Story).filter(Story.author_id == userid)
-    if stories is not None:
-        result = jsonify({"result": 1, "stories": stories})
+
+
+    try:
+        r = requests.get('/user_exists/' + userid, timeout=TIMEOUT)
+    except Timeout:
+        message = "Timeout: the user service is not responding"
+        result = jsonify({"result": -2, "message": message})
+        return result
+
+    json_data = r.json()
+    user = json_data['result']
+    if user != -1:
+        stories = db.session.query(Story).filter(Story.author_id == userid)
+        if stories is not None:
+            result = jsonify({"result": 1, "stories": stories})
+        else:
+            result = jsonify({"result": 0})
+        return result
     else:
-        result = jsonify({"result": 0})
-    return result
+        result = jsonify({"result": -1})
+        return result
 
 
 
@@ -50,8 +69,15 @@ def get_stories():
 
 
         userid = request.args.get('userid')
+        allstories = db.session.query.all()
 
-        r = requests.get('/user_exists/'+userid)
+        try:
+            r = requests.get('/user_exists/'+userid,timeout=TIMEOUT)
+        except Timeout:
+            message = "Timeout: the user service is not responding"
+            result = jsonify({"result": -7, "message": message,  "stories": allstories})
+            return result
+
 
         json_data = r.json()
         user = json_data['result']
@@ -59,9 +85,9 @@ def get_stories():
 
             # if it does not exist I set the params accordingly
 
-            code = -1
+            code = 0
             message = "The user does not exists"
-            result = jsonify({"result": code, "message": message, "stories": []})
+            result = jsonify({"result": code, "message": message, "stories": allstories})
             return result
         else:
 
@@ -78,7 +104,13 @@ def get_stories():
 
             # request of story and faces
 
-            r = requests.get('/dice')
+            try:
+                r = requests.get('/dice')
+            except Timeout:
+                message = "Timeout: the dice service is not responding"
+                result = jsonify({"result": -8, "message": message,  "stories": allstories})
+                return result
+
 
             json_data = r.json()
             text = json_data['text']
@@ -105,40 +137,39 @@ def get_stories():
                 message = "Story created"
             except WrongFormatStoryError:
                 # print('ERROR 1', file=sys.stderr)
-                code = -2
+                code = -1
                 message = "There was an error. Try again."
 
             except WrongFormatDiceError:
                 # print('ERROR 2', file=sys.stderr)
-                code = -3
+                code = -2
                 message = "There was an error. Try again."
 
             except WrongFormatSingleDiceError:
                 # print('ERROR 5', file=sys.stderr)
-                code = -4
+                code = -3
                 message = "There was an error. Try again."
 
             except TooLongStoryError:
                 # print('ERROR 3', file=sys.stderr)
-                code = -5
+                code = -4
                 message = "The story is too long. The length is > 1000 characters."
 
             except TooSmallStoryError:
                 # print('ERROR 4', file=sys.stderr)
-                code = -6
+                code = -5
                 message = "The number of words of the story must greater or equal of the number of resulted faces."
 
 
 
             except InvalidStory:
                 # print('ERROR 6', file=sys.stderr)
-                code = -7
+                code = -6
                 message = "Invalid story. Try again!"
 
 
 
 
-        allstories = db.session.query.all()
         result = jsonify({"result": code, "message": message, "stories": allstories})
         return result
 
@@ -147,13 +178,15 @@ def get_stories():
 
 
     elif 'GET' == request.method:
-        allstories = db.session.query.all()
+        result = []
+        allstories = db.session.query(Story).all()
         if allstories is not None:
-            result = jsonify({"stories": allstories})
-            return result
+            for elem in allstories:
+                result.append(serializeble_story(elem))
+            #print(result, file=sys.stderr)
+            return json.dumps({"result": 1, "stories": result})
         else:
-            abort(404)
-
+            return json.dumps({"result": 0})
 
 
 
@@ -164,10 +197,10 @@ def get_story_detail(storyid):
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
     if story is not None:
-        result = jsonify({"story": story})
-        return result
+        result = json.dumps({"result": 1,"story": story})
     else:
-        abort(404)
+        result = json.dumps({"result": 0})
+    return result
 
 
 
@@ -206,10 +239,10 @@ def random_story():
     q = db.session.query(Story).order_by(func.random()).limit(1)
     random_story_from_db = q.first()
     if random_story_from_db is not None:
-        result = jsonify({"story": random_story_from_db})
-        return result
+        result = jsonify({"result": 1, "story": random_story_from_db})
     else:
-        abort(404)
+        result = json.dumps({"result": 0})
+    return result
 
 
 
@@ -218,7 +251,13 @@ def filter_stories():
     if request.method == 'POST':
 
 
-        r = requests.get("/dates_filter_stories")
+        try:
+            r = requests.get("/dates_filter_stories")
+        except Timeout:
+            message = "Timeout: the service is not responding"
+            result = jsonify({"result": -2, "message": message})
+            return result
+
 
         json_data = r.json()
         init_date = json_data['init_date']
@@ -236,10 +275,10 @@ def filter_stories():
 
 
         if f_stories is not None:
-            result = jsonify({'result': 0,"stories": f_stories})
-            return result
+            result = jsonify({'result': 1,"stories": f_stories})
         else:
-            abort(404)
+            result = jsonify({"result": 0})
+        return result
 
 
 
@@ -261,7 +300,15 @@ def remove_story(storyid):
     story = q.first()
     if story is not None:
         if story.author_id == userid:
-            r = requests.get("/user_exists"+userid)
+
+            try:
+                r = requests.get("/user_exists"+userid)
+            except Timeout:
+                message = "Timeout: the user service is not responding"
+                result = jsonify({"result": -3, "message": message})
+                return result
+
+
             json_data = r.json()
             code = json_data['result']
             if code:
@@ -270,13 +317,13 @@ def remove_story(storyid):
                 result = 1
                 message = "Story removed"
             else:
-                result = -1
+                result = -0
                 message = "There was a problem with the removal of the story. In particular in the deletion of the reactions"
         else:
-            result = -2
+            result = -1
             message = "You cannot remove a story that was not written by you"
     else:
-        result = -3
+        result = -2
         message = "The story you want to delete does not exist"
     res = jsonify({"result": result, "message": message})
     return res
@@ -290,12 +337,11 @@ def index():
     if search_story:
         stories = find_story(text=search_story)
         if stories != None:
-            res = jsonify({"stories": stories})
-            return res
+            return jsonify({"result": 1, "stories": stories})
         else:
-            abort(404)
+            return jsonify({"result": 0})
     else:
-        abort(404)
+        return jsonify({"result": -1})
 
 
 
@@ -303,3 +349,13 @@ def index():
 def find_story(text):
     result = Story.query.filter(func.lower(Story.text).contains(func.lower(text)))
     return result if result.count() > 0 else None
+
+
+def serializeble_story(story):
+    return {'id': story.id,
+     'text': story.text,
+     'dicenumber': story.dicenumber,
+     'date': story.date.strftime("%d/%m/%Y"),
+     'like': story.likes,
+     'dislike': story.dislikes,
+     'author_id': story.author_id}
