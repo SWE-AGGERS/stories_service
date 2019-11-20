@@ -1,57 +1,35 @@
-from flask import Blueprint, request, redirect, render_template, abort, json, jsonify
+from flask import  abort, jsonify
 from sqlalchemy import func
-from flask import Blueprint, redirect, render_template, request
-from flask_login import (current_user, login_user, logout_user,login_required)
+from flask import Blueprint, request
 from stories_service.database import db, Story
-from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatDiceError, WrongFormatSingleDiceError, WrongFormatStoryError
-from flakon import SwaggerBlueprint, JsonBlueprint, create_app
+from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatDiceError, WrongFormatSingleDiceError, WrongFormatSingleFaceError, WrongFormatStoryError
 import requests
 
-other_api = JsonBlueprint('api', __name__)
-
-@other_api.route('/')
-def some():
-    return {'here': 1}
+stories = Blueprint('stories', __name__)
 
 
 
-api = SwaggerBlueprint('Swagger API', 'swagger' ,swagger_spec='openapi.yaml')
-
-
-
-
-
-# Method requested by the microservice reactions_service to
-# check if a story exists via its story id.
-
-
-
-
-
-
-
-
-@api.operation('/story_exists/<storyid>')
+@stories.route('/story_exists/<storyid>')
 def story_exists(storyid):
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
     if story is not None:
         result = jsonify({"result": 1})
-        return result
     else:
-        abort(404)
+        result = jsonify({"result": 0})
+    return result
 
 
 
 
-@api.operation('/story_list/<userid>')
-def story_exists(userid):
+@stories.route('/story_list/<userid>')
+def story_list(userid):
     stories = db.session.query(Story).filter(Story.author_id == userid)
     if stories is not None:
-        result = jsonify({"stories": stories})
-        return result
+        result = jsonify({"result": 1, "stories": stories})
     else:
-        abort(404)
+        result = jsonify({"result": 0})
+    return result
 
 
 
@@ -61,8 +39,8 @@ def story_exists(userid):
 
 
 
-@api.operation('/stories', methods=['POST', 'GET'])
-def stories():
+@stories.route('/stories', methods=['POST', 'GET'])
+def get_stories():
     if 'POST' == request.method:
 
         # Verify that the user exists
@@ -71,9 +49,9 @@ def stories():
         message = ""
 
 
+        userid = request.args.get('userid')
 
-
-        r = requests.get('/user_exists/'+current_user.id)
+        r = requests.get('/user_exists/'+userid)
 
         json_data = r.json()
         user = json_data['result']
@@ -92,7 +70,7 @@ def stories():
 
             # Create a new story
             new_story = Story()
-            new_story.author_id = current_user.id
+            new_story.author_id = userid
             new_story.likes = 0
             new_story.dislikes = 0
 
@@ -181,7 +159,7 @@ def stories():
 
 
 
-@api.operation('/stories/<storyid>', methods=['GET'])
+@stories.route('/stories/<storyid>', methods=['GET'])
 def get_story_detail(storyid):
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
@@ -223,7 +201,7 @@ def _roll(dicenumber, dicesetid):
 """
 
 
-@api.operation('/stories/random', methods=['GET'])
+@stories.route('/stories/random', methods=['GET'])
 def random_story():
     q = db.session.query(Story).order_by(func.random()).limit(1)
     random_story_from_db = q.first()
@@ -235,7 +213,7 @@ def random_story():
 
 
 
-@api.operation('/stories/filter', methods=['POST'])
+@stories.route('/stories/filter', methods=['POST'])
 def filter_stories():
     if request.method == 'POST':
 
@@ -270,19 +248,20 @@ def filter_stories():
 
 
 
-@api.operation('/stories/remove/<storyid>', methods=['POST'])
-def get_remove_story(storyid):
+@stories.route('/stories/remove/<storyid>', methods=['POST'])
+def remove_story(storyid):
 
     message = ""
     result = -1
 
+    userid = request.args.get('userid')
 
     # Remove story
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
     if story is not None:
-        if story.author_id == current_user.id:
-            r = requests.get("/user_exists"+current_user.id)
+        if story.author_id == userid:
+            r = requests.get("/user_exists"+userid)
             json_data = r.json()
             code = json_data['result']
             if code:
@@ -304,7 +283,7 @@ def get_remove_story(storyid):
 
 
 
-@api.operation('/search_story', methods=["GET"])
+@stories.route('/search_story', methods=["GET"])
 def index():
     json_data = request.json()
     search_story = json_data['text']
