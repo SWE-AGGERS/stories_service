@@ -34,7 +34,7 @@ class TestNewStory(unittest.TestCase):
             self.assertEqual(firstStory['author_id'], 1)
 
 
-
+    """
 
 
     def test_get_stories_no_story(self):
@@ -61,8 +61,86 @@ class TestNewStory(unittest.TestCase):
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
             self.assertEqual(body['result'], 0)
-            
-            
-            
+
+
+    """
+
+
+    def test_story_exists_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            reply = client.get('/story_exists/1')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 1)
+
+
+
+    def test_story_exists_not_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+
+            reply = client.get('/story_exists/2')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 0)
+
+
+
+    def test_story_list_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+
+            reply = client.get('/story_list/1')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 1)
+
+
+
+    def test_story_list_not_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+
+            reply = client.get('/story_list/2')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 0)
 
 

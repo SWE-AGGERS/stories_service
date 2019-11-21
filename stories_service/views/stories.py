@@ -5,6 +5,7 @@ from flask import Blueprint, request
 from stories_service.database import db, Story
 from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatDiceError, WrongFormatSingleDiceError, WrongFormatSingleFaceError, WrongFormatStoryError
 import requests
+from requests.exceptions import MissingSchema
 from requests.exceptions import Timeout
 import sys
 
@@ -35,6 +36,14 @@ def story_list(userid):
     except Timeout:
         message = "Timeout: the user service is not responding"
         result = jsonify({"result": -2, "message": message})
+        return result
+    except MissingSchema:
+        message = "The user service is offline"
+        result = jsonify({"result": -3, "message": message})
+        return result
+    except Exception:
+        message = "There was an error in the connection with the user service"
+        result = jsonify({"result": -4, "message": message})
         return result
 
     json_data = r.json()
@@ -77,6 +86,14 @@ def get_stories():
             message = "Timeout: the user service is not responding"
             result = jsonify({"result": -7, "message": message,  "stories": allstories})
             return result
+        except MissingSchema:
+            message = "The user service is offline"
+            result = jsonify({"result": -8, "message": message})
+            return result
+        except Exception:
+            message = "There was an error in the connection with the user service"
+            result = jsonify({"result": -9, "message": message})
+            return result
 
 
         json_data = r.json()
@@ -108,7 +125,15 @@ def get_stories():
                 r = requests.get('/dice')
             except Timeout:
                 message = "Timeout: the dice service is not responding"
-                result = jsonify({"result": -8, "message": message,  "stories": allstories})
+                result = jsonify({"result": -10, "message": message,  "stories": allstories})
+                return result
+            except MissingSchema:
+                message = "The dice service is offline"
+                result = jsonify({"result": -11, "message": message})
+                return result
+            except Exception:
+                message = "There was an error in the connection with the dice service"
+                result = jsonify({"result": -12, "message": message})
                 return result
 
 
@@ -197,7 +222,7 @@ def get_story_detail(storyid):
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
     if story is not None:
-        result = json.dumps({"result": 1,"story": story})
+        result = json.dumps({"result": 1, "story": story})
     else:
         result = json.dumps({"result": 0})
     return result
@@ -250,18 +275,14 @@ def random_story():
 def filter_stories():
     if request.method == 'POST':
 
+        init_date = request.args.get('init_date')
+        end_date = request.args.get('end_date')
 
-        try:
-            r = requests.get("/dates_filter_stories")
-        except Timeout:
-            message = "Timeout: the service is not responding"
+
+        if init_date == None and end_date == None:
+            message = "Wrong dates"
             result = jsonify({"result": -2, "message": message})
             return result
-
-
-        json_data = r.json()
-        init_date = json_data['init_date']
-        end_date = json_data['end_date']
 
         if init_date > end_date:
             result = jsonify({"result": -1})
@@ -307,7 +328,14 @@ def remove_story(storyid):
                 message = "Timeout: the user service is not responding"
                 result = jsonify({"result": -3, "message": message})
                 return result
-
+            except MissingSchema:
+                message = "The user service is offline"
+                result = jsonify({"result": -4, "message": message})
+                return result
+            except Exception:
+                message = "There was an error in the connection with the user service"
+                result = jsonify({"result": -5, "message": message})
+                return result
 
             json_data = r.json()
             code = json_data['result']

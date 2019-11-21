@@ -48,7 +48,7 @@ paths:
       description: Returns the list of stories that user userid have created.
       responses:
         '200':    # status code
-          description: A JSON string with a result field equal to 1 if the there are some stories; a result field equal to 0 if there are no stories; a result field equal to -1 if the user isn't registered and a result field equal to -2 if there was a timeout in the user service.
+          description: A JSON string with a result field equal to 1 if the there are some stories; a result field equal to 0 if there are no stories; a result field equal to -1 if the user isn't registered; a result field equal to -2 if there was a timeout in the user service; a result field equal to -3 if the user service is offline and a result field equal to -4 if there was an error in the connection with the user service.
           content:
             application/json:
               schema:
@@ -62,6 +62,8 @@ paths:
                           * `0` - the user userid didn't write any stories
                           * `-1` - the user userid isn't registered
                           * `-2` - there was a timeout in the user service
+                          * `-3` - The user service is offline
+                          * `-4` - There was an error in the connection with the user service
                     stories:
                       type: string
                       description: the stories written by the user userid.
@@ -71,10 +73,16 @@ paths:
   /stories:
     post:
       summary: Create a new story and returns the list of all stories created.
+      parameters:
+        - in: query
+          name: userid
+          schema:
+            type: integer
+          description: Numeric ID of the user who wants to create the story
       description: Create a new story and returns the list of all stories created.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service and -8 if there was a timeout in the dice service. In all of these cases an info message and the list of all stories created are returned.
+          description: A JSON string with a result field that is equal to 1 if the story is created successfully; result is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service; -8 if the user service is offline; -9 if there was an error in the connection with the user service; -10 if the dice service is not responding; -11 if the dice service is offline; -12 if there was an error in the connection with the dice service. In all of these cases an info message and the list of all stories created are returned.
           content:
             application/json:
               schema:
@@ -93,7 +101,11 @@ paths:
                           * `-5` - the story is too short
                           * `-6` - the story is invalid
                           * `-7` - there was a timeout in the user service
-                          * `-8` - there was a timeout in the dice service
+                          * `-8` - the user service is offline
+                          * `-9` - there was an error in the connection with the user service
+                          * `-10 - timeout: the dice service is not responding
+                          * `-11` - the dice service is offline
+                          * `-12` - there was an error in the connection with the dice service
                     message:
                       type: string
                       description: >
@@ -107,7 +119,11 @@ paths:
                          * `'The number of words of the story must greater or equal of the number of resulted faces.'` - the story is too short
                          * `'Invalid story. Try again!'` - the story is invalid
                          * `'Timeout: the user service is not responding'` - there was a timeout in the user service
+                         * `'The user service is offline'` - The user service is offline
+                         * `'There was an error in the connection with the user service'` - There was an error in the connection with the user service
                          * `'Timeout: the dice service is not responding'` - there was a timeout in the dice service
+                         * `'The dice service is offline'` - The dice service is offline
+                         * `'There was an error in the connection with the dice service'` - There was an error in the connection with the dice service
                     stories:
                       type: string
                       description: the list of stories of all users.
@@ -191,6 +207,17 @@ paths:
   /stories/filter:
     post:
       summary: Returns the stories published in a certain interval of time.
+      parameters:
+        - in: query
+          name: init_date
+          schema:
+            type: string
+          description: Start date of the search
+        - in: query
+          name: end_date
+          schema:
+            type: string
+          description: End date of the search
       description: Returns the stories published in a certain interval of time.
       responses:
         '200':    # status code
@@ -207,7 +234,7 @@ paths:
                         * `1` - there are some stories in that interval.
                         * `0` - there are no stories in that interval.
                         * `-1` - the initial date is greater than the final date.
-                        * `-2` - Timeout: the service is not responding.
+                        * `-2` - the dates are null.
                   stories:
                     type: string
                     description: the stories in that interval, if there are some.
@@ -215,7 +242,7 @@ paths:
                     type: string
                     description: >
                       Messages:
-                       * `'Timeout: the service is not responding'` - There was a timeout.
+                       * `'Wrong dates'` - The dates are null.
 
 
 
@@ -230,10 +257,15 @@ paths:
             type: integer
           required: true
           description: Numeric ID of the story to remove
+        - in: query
+          name: userid
+          schema:
+            type: integer
+          description: Numeric ID of the user who wants to remove the story
       description: Remove the story identified by storyid.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; -1 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -2 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -3 if the story does not exist; -4 if there was a timeout in the service. In all cases an error message is also returned within the "message" field of the JSON file.
+          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; 0 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -1 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -2 if the story does not exist; -3 if there was a timeout in the service; -4 if the user service is offline; -5 if there was an error in the connection with the user service. In all cases an error message is also returned within the "message" field of the JSON file.
           content:
             application/json:
               schema:
@@ -248,6 +280,8 @@ paths:
                           * `-1` - The story was written by another user.
                           * `-2` - The story does not exists.
                           * `-3` - Timeout: the user service is not responding
+                          * `-4` - The user service is offline
+                          * `-5` - There was an error in the connection with the user service
                     message:
                       type: string
                       description: >
@@ -257,6 +291,8 @@ paths:
                          * `'You cannot remove a story that was not written by you'`
                          * `'The story you want to delete does not exist'`
                          * `'Timeout: the user service is not responding'`
+                         * `'The user service is offline'`
+                         * `'There was an error in the connection with the user service'`
 
 
   /search_stories:
