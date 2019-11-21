@@ -79,10 +79,23 @@ paths:
           schema:
             type: integer
           description: Numeric ID of the user who wants to create the story
+        - in: query
+          name: created_story
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    text:
+                      type: string
+                      description: the story
+                    roll:
+                      type: string
+                      description: a string list of the dice
       description: Create a new story and returns the list of all stories created.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to 1 if the story is created successfully; result is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service; -8 if the user service is offline; -9 if there was an error in the connection with the user service; -10 if the dice service is not responding; -11 if the dice service is offline; -12 if there was an error in the connection with the dice service. In all of these cases an info message and the list of all stories created are returned.
+          description: A JSON string with a result field that is equal to 1 if the story is created successfully; result is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service; -8 if the user service is offline; -9 if there was an error in the connection with the user service. In all of these cases an info message and the list of all stories created are returned.
           content:
             application/json:
               schema:
@@ -103,9 +116,6 @@ paths:
                           * `-7` - there was a timeout in the user service
                           * `-8` - the user service is offline
                           * `-9` - there was an error in the connection with the user service
-                          * `-10 - timeout: the dice service is not responding
-                          * `-11` - the dice service is offline
-                          * `-12` - there was an error in the connection with the dice service
                     message:
                       type: string
                       description: >
@@ -121,9 +131,6 @@ paths:
                          * `'Timeout: the user service is not responding'` - there was a timeout in the user service
                          * `'The user service is offline'` - The user service is offline
                          * `'There was an error in the connection with the user service'` - There was an error in the connection with the user service
-                         * `'Timeout: the dice service is not responding'` - there was a timeout in the dice service
-                         * `'The dice service is offline'` - The dice service is offline
-                         * `'There was an error in the connection with the dice service'` - There was an error in the connection with the dice service
                     stories:
                       type: string
                       description: the list of stories of all users.
@@ -298,6 +305,17 @@ paths:
   /search_stories:
     get:
       summary: Look up in the stories the words contained in the 'text' field of the included JSON file.
+      parameters:
+        - in: query
+          name: story
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: the text to search
       description: Look up in the stories the words contained in the 'text' field of the included JSON file.
       responses:
         '200':    # status code

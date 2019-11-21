@@ -119,27 +119,13 @@ def get_stories():
 
 
 
-            # request of story and faces
-
-            try:
-                r = requests.get('/dice')
-            except Timeout:
-                message = "Timeout: the dice service is not responding"
-                result = jsonify({"result": -10, "message": message,  "stories": allstories})
-                return result
-            except MissingSchema:
-                message = "The dice service is offline"
-                result = jsonify({"result": -11, "message": message})
-                return result
-            except Exception:
-                message = "There was an error in the connection with the dice service"
-                result = jsonify({"result": -12, "message": message})
-                return result
 
 
-            json_data = r.json()
-            text = json_data['text']
-            roll = json_data['roll']
+            json_data = request.json()
+            created_story = json_data['created_story']
+            text = created_story['text']
+            roll = created_story['roll']
+
 
 
             if (type(roll) is str):
@@ -361,7 +347,8 @@ def remove_story(storyid):
 @stories.route('/search_story', methods=["GET"])
 def index():
     json_data = request.json()
-    search_story = json_data['text']
+    story = json_data['story']
+    search_story = story['text']
     if search_story:
         stories = find_story(text=search_story)
         if stories != None:
