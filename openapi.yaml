@@ -116,6 +116,8 @@ paths:
                           * `-7` - there was a timeout in the user service
                           * `-8` - the user service is offline
                           * `-9` - there was an error in the connection with the user service
+                          * `-10` - The parameter userid is None
+                          * `-11` - Wrong parameters
                     message:
                       type: string
                       description: >
@@ -131,6 +133,8 @@ paths:
                          * `'Timeout: the user service is not responding'` - there was a timeout in the user service
                          * `'The user service is offline'` - The user service is offline
                          * `'There was an error in the connection with the user service'` - There was an error in the connection with the user service
+                         * `'The userid is None'`
+                         * `'Wrong parameters'`
                     stories:
                       type: string
                       description: the list of stories of all users.
@@ -272,7 +276,7 @@ paths:
       description: Remove the story identified by storyid.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; 0 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -1 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -2 if the story does not exist; -3 if there was a timeout in the service; -4 if the user service is offline; -5 if there was an error in the connection with the user service. In all cases an error message is also returned within the "message" field of the JSON file.
+          description: A JSON string with a result field that is equal to 1 if the story has been successfully removed; 0 if there has been any problem in the removal of history, in particular in the removal of the reactions of the stories; -1 if it is not possible to remove the story because it was not written by the user who is trying to remove it; -2 if the story does not exist; -3 if the userid is not inserted; -4 if there was a timeout and the user service is not responding; -5 of the user service is offline; -6 if there was an error in the connection with the user service; -7 if the user does not exists; -8 if there was a timeout and the reactions service is not responding; -9 if the reaction service is offline and -10 if there was an error in the connection with the reaction service In all cases an error message is also returned within the "message" field of the JSON file.
           content:
             application/json:
               schema:
@@ -286,9 +290,14 @@ paths:
                           * `0` - There was a problem in the deletion of the story.
                           * `-1` - The story was written by another user.
                           * `-2` - The story does not exists.
-                          * `-3` - Timeout: the user service is not responding
-                          * `-4` - The user service is offline
-                          * `-5` - There was an error in the connection with the user service
+                          * `-3` - userid not inserted.
+                          * `-4` - Timeout: the user service is not responding
+                          * `-5` - The user service is offline
+                          * `-6` - There was an error in the connection with the user service
+                          * `-7` - The user does not exists
+                          * `-8` - Timeout: the reactions service is not responding
+                          * `-9` - The reaction service is offline
+                          * `-10` - There was an error in the connection with the reaction service
                     message:
                       type: string
                       description: >
@@ -300,6 +309,11 @@ paths:
                          * `'Timeout: the user service is not responding'`
                          * `'The user service is offline'`
                          * `'There was an error in the connection with the user service'`
+                         * `'userid not inserted'`
+                         * `'The user does not exists'`
+                         * `'Timeout: the reactions service is not responding'`
+                         * `'The reaction service is offline'`
+                         * `'There was an error in the connection with the reaction service'`
 
 
   /search_stories:
@@ -332,6 +346,7 @@ paths:
                         * `1` - At least one story has been found.
                         * `0` - No history has been found.
                         * `-1` - The string to search is empty
+                        * `-2` - The text inserted is None
                   stories:
                     type: string
                     description: The stories that match the searched string.
