@@ -242,7 +242,11 @@ def random_story():
 def filter_stories():
     if request.method == 'POST':
 
-        userid = request.args.get('userid')
+        json_data = request.json()
+        info = json_data['info']
+        init_date = info['init_date']
+        end_date = info['end_date']
+        userid = info['userid']
 
         if userid == None:
             message = "userid not inserted"
@@ -270,13 +274,6 @@ def filter_stories():
 
         else:
 
-
-
-
-
-
-            init_date = request.args.get('init_date')
-            end_date = request.args.get('end_date')
 
 
             if init_date == None or end_date == None:

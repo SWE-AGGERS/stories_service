@@ -219,17 +219,22 @@ paths:
       summary: Returns the stories published in a certain interval of time.
       parameters:
         - in: query
-          name: init_date
-          schema:
-            type: string
-          required: true
-          description: Start date of the search
-        - in: query
-          name: end_date
-          schema:
-            type: string
-          required: true
-          description: End date of the search
+            name: info
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    init_date:
+                      type: string
+                      description: start date
+                    end_date:
+                      type: string
+                      description: end date
+                    userid:
+                      type: integer
+                       description: user id
       description: Returns the stories published in a certain interval of time.
       responses:
         '200':    # status code

@@ -5,9 +5,11 @@ from stories_service.database import db
 from stories_service.tests.restart_db import restart_db_tables
 
 
+_app = None
+
 class SearchTestCase(unittest.TestCase):
 
-    def search_story(self):
+    def test_search_story(self):
 
 
         global _app
@@ -24,8 +26,9 @@ class SearchTestCase(unittest.TestCase):
                                 data=json.dumps({"email": 'example@example.com', 'password': 'admin'}),
                                 content_type='application/json')
 
-            body = json.loads(str(reply.data, 'utf8'))
+
             self.assertEqual(reply.status_code, 200)
+            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(body['response'], True)
             self.assertEqual(body['user_id'], 1)
 
@@ -36,7 +39,7 @@ class SearchTestCase(unittest.TestCase):
             self.assertEqual(reply.status_code, 200)
             self.assertEqual(body['result'], 1)
 
-    def search_story_negative(self):
+    def test_search_story_negative(self):
 
         global _app
         if _app is None:
@@ -52,8 +55,8 @@ class SearchTestCase(unittest.TestCase):
                                 data=json.dumps({"email": 'example@example.com', 'password': 'admin'}),
                                 content_type='application/json')
 
-            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
+            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(body['response'], True)
             self.assertEqual(body['user_id'], 1)
 
@@ -65,7 +68,7 @@ class SearchTestCase(unittest.TestCase):
             self.assertEqual(body['result'], 0)
 
 
-    def search_story_error_text_none(self):
+    def test_search_story_error_text_none(self):
 
 
         global _app
@@ -82,8 +85,9 @@ class SearchTestCase(unittest.TestCase):
                                 data=json.dumps({"email": 'example@example.com', 'password': 'admin'}),
                                 content_type='application/json')
 
-            body = json.loads(str(reply.data, 'utf8'))
+
             self.assertEqual(reply.status_code, 200)
+            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(body['response'], True)
             self.assertEqual(body['user_id'], 1)
 
@@ -95,7 +99,7 @@ class SearchTestCase(unittest.TestCase):
 
 
 
-    def search_story_error_text_empty(self):
+    def test_search_story_error_text_empty(self):
 
 
         global _app
@@ -114,8 +118,9 @@ class SearchTestCase(unittest.TestCase):
                                 data=json.dumps({"email": 'example@example.com', 'password': 'admin'}),
                                 content_type='application/json')
 
-            body = json.loads(str(reply.data, 'utf8'))
+
             self.assertEqual(reply.status_code, 200)
+            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(body['response'], True)
             self.assertEqual(body['user_id'], 1)
 
@@ -127,7 +132,7 @@ class SearchTestCase(unittest.TestCase):
             self.assertEqual(body['result'], -1)
 
 
-    def search_story_error_text_empty_v2(self):
+    def test_search_story_error_text_empty_v2(self):
 
 
         global _app
@@ -146,8 +151,9 @@ class SearchTestCase(unittest.TestCase):
                                 data=json.dumps({"email": 'example@example.com', 'password': 'admin'}),
                                 content_type='application/json')
 
-            body = json.loads(str(reply.data, 'utf8'))
+
             self.assertEqual(reply.status_code, 200)
+            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(body['response'], True)
             self.assertEqual(body['user_id'], 1)
 

@@ -1,10 +1,10 @@
 import unittest
-
 from stories_service.app import create_app
 from stories_service.database import db
 from stories_service.tests.restart_db import restart_db_tables
 import json
 
+_app = None
 
 class TestRandomStory(unittest.TestCase):
     def test_story_retrieval(self):
@@ -28,12 +28,21 @@ class TestRandomStory(unittest.TestCase):
 
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
+            self.assertEqual(body['response'], True)
+            self.assertEqual(body['user_id'], 1)
 
             reply = client.get('/stories/random')
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
             self.assertEqual(body['story'], 'Trial story of example admin user')
+
+            randomStory = body['story']
+            self.assertEqual(randomStory['id'], 1)
+            self.assertEqual(randomStory['text'], 'Trial story of example admin user :)')
+            self.assertEqual(randomStory['dicenumber'], None)
+            self.assertEqual(randomStory['like'], 42)
+            self.assertEqual(randomStory['dislike'], None)
+            self.assertEqual(randomStory['author_id'], 1)
 
 
 
