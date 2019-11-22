@@ -8,3 +8,7 @@ BASE_PATH = Path().absolute()
 # email and password for e-mail service
 _EMAIL = ''
 _PASSWORD = ''
+
+
+USER_SERVICE_IP = '172.28.1.2'
+USER_SERVICE_PORT = '5000'

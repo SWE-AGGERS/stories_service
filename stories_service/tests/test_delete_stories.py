@@ -31,7 +31,8 @@ class TestDeleteStory(unittest.TestCase):
 
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
+            self.assertEqual(body['response'], True)
+            self.assertEqual(body['user_id'], 1)
 
 
 
@@ -83,7 +84,10 @@ class TestDeleteStory(unittest.TestCase):
 
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
+            self.assertEqual(body['response'], True)
+            self.assertEqual(body['user_id'], 1)
+
+
 
     def test_delete_story_negative(self):
 

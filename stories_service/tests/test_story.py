@@ -134,7 +134,7 @@ class TestNewStory(unittest.TestCase):
         with tested_app.test_client() as client:
 
             reply = client.post('/stories/remove/1?userid=1')
-            print(reply, file=sys.stderr)
+            #print(reply, file=sys.stderr)
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
             self.assertEqual(body['result'], 1)
@@ -146,7 +146,8 @@ class TestNewStory(unittest.TestCase):
             self.assertEqual(body['result'], 0)
 
 
-    def create_story_positive(self):
+
+    def test_post_story_ok(self):
 
         global _app
         if _app is None:
@@ -156,16 +157,19 @@ class TestNewStory(unittest.TestCase):
             tested_app = _app
         restart_db_tables(db, tested_app)
 
+
+
         with tested_app.test_client() as client:
 
-            reply = client.post('/stories?userid=1',data=json.dumps({"text":'prova','roll':['prova']}),
+            reply = client.post('/stories?userid=1',
+                                data=json.dumps({"text":'prova','roll':['prova']}),
                                 content_type='application/json')
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
             self.assertEqual(body['result'], 0)
 
 
-    def create_story_negative(self):
+    def test_post_story_not_ok(self):
 
         global _app
         if _app is None:
@@ -175,12 +179,141 @@ class TestNewStory(unittest.TestCase):
             tested_app = _app
         restart_db_tables(db, tested_app)
 
+
+
         with tested_app.test_client() as client:
 
-            reply = client.post('/stories?userid=1',data=json.dumps({"text":'prova','roll':['prova']}),
+            reply = client.post('/stories?userid=2',
+                                data=json.dumps({"text":'prova','roll':['prova']}),
                                 content_type='application/json')
             body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
             self.assertEqual(body['result'], 0)
 
 
+    def test_get_detail_story_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+
+
+        with tested_app.test_client() as client:
+
+            reply = client.get('/stories/1')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 1)
+            firstStory = body['story']
+            self.assertEqual(firstStory['id'], 1)
+            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
+            self.assertEqual(firstStory['dicenumber'], None)
+            self.assertEqual(firstStory['like'], 42)
+            self.assertEqual(firstStory['dislike'], None)
+            self.assertEqual(firstStory['author_id'], 1)
+
+
+
+    def test_get_detail_story_not_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+
+
+        with tested_app.test_client() as client:
+
+            reply = client.get('/stories/2')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 0)
+
+
+
+    def test_random_story_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+
+
+        with tested_app.test_client() as client:
+
+            reply = client.get('/stories/random')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 1)
+            firstStory = body['story']
+            self.assertEqual(firstStory['id'], 1)
+            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
+            self.assertEqual(firstStory['dicenumber'], None)
+            self.assertEqual(firstStory['like'], 42)
+            self.assertEqual(firstStory['dislike'], None)
+            self.assertEqual(firstStory['author_id'], 1)
+
+
+
+    def test_random_story_not_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+
+
+        with tested_app.test_client() as client:
+
+            reply = client.post('/stories/remove/1?userid=1')
+            #print(reply, file=sys.stderr)
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 1)
+            reply = client.get('/stories/random')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 0)
+
+    def test_random_story_ok(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+
+
+        with tested_app.test_client() as client:
+
+            reply = client.get('/stories/random')
+            body = json.loads(str(reply.data, 'utf8'))
+            self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['result'], 1)
+            firstStory = body['story']
+            self.assertEqual(firstStory['id'], 1)
+            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
+            self.assertEqual(firstStory['dicenumber'], None)
+            self.assertEqual(firstStory['like'], 42)
+            self.assertEqual(firstStory['dislike'], None)
+            self.assertEqual(firstStory['author_id'], 1)
