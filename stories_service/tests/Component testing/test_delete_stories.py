@@ -1,10 +1,9 @@
 import unittest
 from stories_service.app import create_app
-from stories_service.tests.test_stories_reactions import login, logout
 from stories_service.database import db, Story
 from flask_login import current_user
 from flask import json, jsonify
-from stories_service.tests.restart_db import restart_db_tables
+from stories_service.restart_db import restart_db_tables
 
 _app = None
 
@@ -192,8 +191,15 @@ class TestDeleteStory(unittest.TestCase):
             self.assertNotEqual(story, None)
 
             # logout
-            reply = logout(client)
+            reply = client.post('/logout',
+                             data=json.dumps({
+                                "email": "example@example.com",
+                                "password": 'admin'}), content_type='application/json')
+
+            body = json.loads(str(reply.data, 'utf8'))
             self.assertEqual(reply.status_code, 200)
+            self.assertEqual(body['response'], True)
+            self.assertEqual(body['user_id'], 1)
 
 
             # signup

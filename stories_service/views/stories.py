@@ -7,7 +7,7 @@ from stories_service.views.check_stories import check_storyV2, InvalidStory, Too
 import requests
 from requests.exceptions import Timeout
 import sys
-from stories_service.constants import USER_SERVICE_IP, USER_SERVICE_PORT
+from stories_service.constants import USER_SERVICE_IP, USER_SERVICE_PORT, REACTIONS_SERVICE_IP, REACTIONS_SERVICE_PORT
 
 stories = Blueprint('stories', __name__)
 
@@ -31,32 +31,41 @@ def story_exists(storyid):
 def story_list(userid):
 
 
-    url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + userid
 
-    try:
-        r = requests.get(url, timeout=TIMEOUT)
-    except Timeout:
+
+    ris = send_request_user_service(userid)
+
+    if ris == -2:
         message = "Timeout: the user service is not responding"
         result = jsonify({"result": -2, "message": message})
         return result
 
-    json_data = r.json()
-    user = json_data['result']
-    arr = []
+    elif ris != -1:
 
-    if user != -1:
+
         allstories = db.session.query(Story).filter(Story.author_id == userid)
 
-        if allstories is not None:
-            for elem in allstories:
-                arr.append(serializeble_story(elem))
-            #print(result, file=sys.stderr)
-            result = jsonify({"result": 1, "stories": arr})
+        arr = []
+
+
+        ris = send_request_reactions_service(arr,allstories)
+
+        if ris == -2:
+            message = "One or more of the stories written by the user does not exists in the reaction database"
+            result = jsonify({"result": -3, "message": message})
+        elif ris == -1:
+            message = "Timeout: the reactions service is not responding"
+            result = jsonify({"result": -4, "message": message})
+        elif ris == 1:
+            message = "Here are the stories written by the user"
+            result = jsonify({"result": 1, "stories": arr, 'message': message})
         else:
-            result = jsonify({"result": 0})
+            message = "No story has been found"
+            result = jsonify({"result": 0, 'message': message})
         return result
     else:
-        result = jsonify({"result": -1})
+        message = "The user does not exists"
+        result = jsonify({"result": -1, 'message': message})
         return result
 
 
@@ -79,135 +88,148 @@ def get_stories():
         arr = []
 
         allstories = db.session.query(Story).all()
-        if allstories is not None:
-            for elem in allstories:
-                arr.append(serializeble_story(elem))
-            #print(result, file=sys.stderr)
 
-        userid = request.args.get('userid')
+        ris = send_request_reactions_service(arr,allstories)
 
-        if userid == None:
-            message = "The userid is None"
-            result = jsonify({"result": -9, "message": message,  "stories": arr})
+        if ris == -2:
+            message = "One or more of the stories written by the user does not exists in the reaction database"
+            result = jsonify({"result": -10, "message": message})
             return result
-
-        url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + userid
-
-        try:
-            r = requests.get(url,timeout=TIMEOUT)
-        except Timeout:
-            message = "Timeout: the user service is not responding"
-            result = jsonify({"result": -7, "message": message,  "stories": arr})
-            return result
-
-
-        json_data = r.json()
-        user = json_data['result']
-        if user == -1:
-
-            # if it does not exist I set the params accordingly
-
-            code = 0
-            message = "The user does not exists"
-            result = jsonify({"result": code, "message": message,  "stories": arr})
+        elif ris == -1:
+            message = "Timeout: the reactions service is not responding"
+            result = jsonify({"result": -11, "message": message})
             return result
         else:
 
-            # otherwise I create the story and I verify that it is valid
+            userid = request.args.get('userid')
 
-
-            # Create a new story
-            new_story = Story()
-            new_story.author_id = userid
-            new_story.likes = 0
-            new_story.dislikes = 0
-
-
-
-
-
-            json_data = request.json()
-            created_story = json_data['created_story']
-            text = created_story['text']
-            roll = created_story['roll']
-
-            if text == None or roll == None:
-                message = "Wrong parameters"
-                result = jsonify({"result": -8, "message": message,  "stories": arr})
+            if userid == None:
+                message = "The userid is None"
+                result = jsonify({"result": -9, "message": message,  "stories": arr})
                 return result
 
+            ris = send_request_user_service(userid)
+
+            if ris == -2:
+                message = "Timeout: the user service is not responding"
+                result = jsonify({"result": -7, "message": message})
+                return result
+
+            elif ris == -1:
+
+                # if it does not exist I set the params accordingly
+
+                code = 0
+                message = "The user does not exists"
+                result = jsonify({"result": code, "message": message,  "stories": arr})
+                return result
+            else:
+
+                # otherwise I create the story and I verify that it is valid
 
 
-            if (type(roll) is str):
-                roll = roll.replace("[", "")
-                roll = roll.replace("]", "")
-                roll = roll.replace("'", "")
-                roll = roll.replace(" ", "")
-                aux = roll.split(",")
-                roll = aux
-
-            dicenumber = len(roll)
-            try:
-                check_storyV2(text, roll)
-                new_story.text = text
-                new_story.roll = {'dice': roll}
-                new_story.dicenumber = dicenumber
-                db.session.add(new_story)
-                db.session.commit()
-                code = 1
-                message = "Story created"
-            except WrongFormatStoryError:
-                # print('ERROR 1', file=sys.stderr)
-                code = -1
-                message = "There was an error. Try again."
-
-            except WrongFormatDiceError:
-                # print('ERROR 2', file=sys.stderr)
-                code = -2
-                message = "There was an error. Try again."
-
-            except WrongFormatSingleDiceError:
-                # print('ERROR 5', file=sys.stderr)
-                code = -3
-                message = "There was an error. Try again."
-
-            except TooLongStoryError:
-                # print('ERROR 3', file=sys.stderr)
-                code = -4
-                message = "The story is too long. The length is > 1000 characters."
-
-            except TooSmallStoryError:
-                # print('ERROR 4', file=sys.stderr)
-                code = -5
-                message = "The number of words of the story must greater or equal of the number of resulted faces."
-
-
-
-            except InvalidStory:
-                # print('ERROR 6', file=sys.stderr)
-                code = -6
-                message = "Invalid story. Try again!"
+                # Create a new story
+                new_story = Story()
+                new_story.author_id = userid
+                new_story.likes = 0
+                new_story.dislikes = 0
 
 
 
 
-        result = jsonify({"result": code, "message": message,  "stories": arr})
-        return result
+
+                json_data = request.json()
+                created_story = json_data['created_story']
+                text = created_story['text']
+                roll = created_story['roll']
+
+                if text == None or roll == None:
+                    message = "Wrong parameters"
+                    result = jsonify({"result": -8, "message": message,  "stories": arr})
+                    return result
+
+
+
+                if (type(roll) is str):
+                    roll = roll.replace("[", "")
+                    roll = roll.replace("]", "")
+                    roll = roll.replace("'", "")
+                    roll = roll.replace(" ", "")
+                    aux = roll.split(",")
+                    roll = aux
+
+                dicenumber = len(roll)
+                try:
+                    check_storyV2(text, roll)
+                    new_story.text = text
+                    new_story.roll = {'dice': roll}
+                    new_story.dicenumber = dicenumber
+                    db.session.add(new_story)
+                    db.session.commit()
+                    code = 1
+                    message = "Story created"
+                except WrongFormatStoryError:
+                    # print('ERROR 1', file=sys.stderr)
+                    code = -1
+                    message = "There was an error. Try again."
+
+                except WrongFormatDiceError:
+                    # print('ERROR 2', file=sys.stderr)
+                    code = -2
+                    message = "There was an error. Try again."
+
+                except WrongFormatSingleDiceError:
+                    # print('ERROR 5', file=sys.stderr)
+                    code = -3
+                    message = "There was an error. Try again."
+
+                except TooLongStoryError:
+                    # print('ERROR 3', file=sys.stderr)
+                    code = -4
+                    message = "The story is too long. The length is > 1000 characters."
+
+                except TooSmallStoryError:
+                    # print('ERROR 4', file=sys.stderr)
+                    code = -5
+                    message = "The number of words of the story must greater or equal of the number of resulted faces."
+
+
+
+                except InvalidStory:
+                    # print('ERROR 6', file=sys.stderr)
+                    code = -6
+                    message = "Invalid story. Try again!"
+
+
+
+
+            result = jsonify({"result": code, "message": message,  "stories": arr})
+            return result
 
 
 
 
 
     elif 'GET' == request.method:
-        result = []
+
         allstories = db.session.query(Story).all()
-        if allstories is not None:
-            for elem in allstories:
-                result.append(serializeble_story(elem))
-            #print(result, file=sys.stderr)
-            return jsonify({"result": 1, "stories": result})
+        arr = []
+        ris = send_request_reactions_service(arr,allstories)
+
+        if ris == -2:
+            message = "One or more of the stories written by the user does not exists in the reaction database"
+            result = jsonify({"result": -1, "message": message})
+            return result
+        elif ris == -1:
+            message = "Timeout: the reactions service is not responding"
+            result = jsonify({"result": -2, "message": message})
+            return result
+        elif ris == 1:
+            message = "Stories"
+            return jsonify({"result": 1, "stories": arr, 'message': message})
         else:
-            return jsonify({"result": 0})
+            message = "No stories"
+            return jsonify({"result": 0, 'message': message})
 
 
 
@@ -218,11 +240,30 @@ def get_story_detail(storyid):
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
 
-    if story is not None:
-        result = json.dumps({"result": 1, "story": serializeble_story(story)})
+
+
+    if story != None:
+
+        arr = []
+        allstories = []
+        allstories.append(story)
+
+        ris = send_request_reactions_service(arr, allstories)
+
+        if ris == -2:
+            message = "The story does not exists in the reaction database"
+            result = jsonify({"result": -1, "message": message})
+        elif ris == -1:
+            message = "Timeout: the reactions service is not responding"
+            result = jsonify({"result": -2, "message": message})
+        else:
+            message = "The story exists"
+            result = json.dumps({"result": 1, "message": message, "story": arr[0]})
+        return result
     else:
-        result = json.dumps({"result": 0})
-    return result
+        message = "The story does not exists"
+        result = json.dumps({"result": 0, "message": message})
+        return result
 
 
 
@@ -230,11 +271,32 @@ def get_story_detail(storyid):
 def random_story():
     q = db.session.query(Story).order_by(func.random()).limit(1)
     random_story_from_db = q.first()
-    if random_story_from_db is not None:
-        result = jsonify({"result": 1, "story": serializeble_story(random_story_from_db)})
+
+
+    if random_story_from_db != None:
+
+        arr = []
+        allstories = []
+        allstories.append(random_story_from_db)
+
+        ris = send_request_reactions_service(arr, allstories)
+
+        if ris == -2:
+            message = "The story does not exists in the reaction database"
+            result = jsonify({"result": -1, "message": message})
+        elif ris == -1:
+            message = "Timeout: the reactions service is not responding"
+            result = jsonify({"result": -2, "message": message})
+        else:
+            message = "The story exists"
+            result = json.dumps({"result": 1, "message": message, "story": arr[0]})
+        return result
     else:
-        result = json.dumps({"result": 0})
-    return result
+        message = "The story does not exists"
+        result = json.dumps({"result": 0, "message": message})
+        return result
+
+
 
 
 
@@ -253,20 +315,17 @@ def filter_stories():
             result = jsonify({"result": -3, "message": message})
             return result
 
-        url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + userid
 
-        try:
-            r = requests.get(url, timeout=TIMEOUT)
-        except Timeout:
+        ris = send_request_user_service(userid)
+
+        if ris == -2:
             message = "Timeout: the user service is not responding"
             result = jsonify({"result": -4, "message": message})
             return result
 
-        json_data = r.json()
-        user = json_data['result']
-        if user == -1:
 
-            # if it does not exist I set the params accordingly
+        elif ris == -1:
+
 
             message = "The user does not exists"
             result = jsonify({"result": -5, "message": message})
@@ -291,17 +350,25 @@ def filter_stories():
                 .filter(Story.date <= end_date)\
                 .all()
 
-
             arr = []
 
-            if f_stories is not None:
-                for elem in f_stories:
-                    arr.append(serializeble_story(elem))
-                #print(result, file=sys.stderr)
-                return jsonify({"result": 1, "stories": arr})
+
+            ris = send_request_reactions_service(arr, f_stories)
+
+            if ris == -2:
+                message = "One or more of the stories written by the user does not exists in the reaction database"
+                result = jsonify({"result": -6, "message": message})
+            elif ris == -1:
+                message = "Timeout: the reactions service is not responding"
+                result = jsonify({"result": -7, "message": message})
+            elif ris == 0:
+                message = "No story has been found"
+                result = jsonify({"result": 0, "message": message})
             else:
-                result = jsonify({"result": 0})
+                message = "At least one story has been found"
+                result = jsonify({"result": 1, "stories": arr, "message": message})
             return result
+
 
 
 
@@ -323,18 +390,15 @@ def remove_story(storyid):
         result = jsonify({"result": -2, "message": message})
         return result
 
-    url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + userid
+    ris = send_request_user_service(userid)
 
-    try:
-        r = requests.get(url, timeout=TIMEOUT)
-    except Timeout:
+    if ris == -2:
         message = "Timeout: the user service is not responding"
         result = jsonify({"result": -3, "message": message})
         return result
 
-    json_data = r.json()
-    user = json_data['result']
-    if user == -1:
+
+    elif ris == -1:
 
         # if it does not exist I set the params accordingly
 
@@ -350,7 +414,7 @@ def remove_story(storyid):
         q = db.session.query(Story).filter_by(id=storyid)
         story = q.first()
         if story is not None:
-            if story.author_id == user:
+            if story.author_id == userid:
                 db.session.delete(story)
                 db.session.commit()
                 result = 1
@@ -373,26 +437,36 @@ def index():
     search_story = story['text']
 
     if search_story == None:
-        result = jsonify({"result": -2})
+        message = "Story empty"
+        result = jsonify({"result": -2, 'message': message})
         return result
 
 
     if search_story != ' ' and search_story != '':
+
+
         allstories = find_story(text=search_story)
 
         arr = []
 
+        ris = send_request_reactions_service(arr, allstories)
 
-        if allstories != None:
-
-            for elem in allstories:
-                arr.append(serializeble_story(elem))
-            #print(result, file=sys.stderr)
-            return jsonify({"result": 1, "stories": arr})
+        if ris == -2:
+            message = "One or more of the stories does not exists in the reaction database"
+            result = jsonify({"result": -3, "message": message})
+        elif ris == -1:
+            message = "Timeout: the reactions service is not responding"
+            result = jsonify({"result": -4, "message": message})
+        elif ris == 0:
+            message = "No story has been found"
+            result = jsonify({"result": 0, "message": message})
         else:
-            return jsonify({"result": 0})
+            message = "At least one story has been found"
+            result = jsonify({"result": 1, "stories": arr, "message": message})
+        return result
     else:
-        return jsonify({"result": -1})
+        message = "The text inserted is empty"
+        return jsonify({"result": -1, 'message': message})
 
 
 
@@ -412,5 +486,51 @@ def serializeble_story(story):
      'author_id': story.author_id}
 
 
-# api per cancellare tutte le reazioni di una storie
-# api per restituire il numero di utenti registrati
+
+
+
+
+def send_request_reactions_service(arr,allstories):
+
+
+
+    if allstories is not None:
+
+        for elem in allstories:
+
+            url = 'http://' + REACTIONS_SERVICE_IP + ':' + REACTIONS_SERVICE_PORT + '/reactions/' + str(elem.id)
+
+            try:
+                r = requests.get(url, timeout=TIMEOUT)
+            except Timeout:
+                return -1
+
+            json_data = r.json()
+            story_id = json_data['story_id']
+            if story_id != -1:
+                like = json_data['like']
+                dislike = json_data['dislikes']
+
+                elem.like = like
+                elem.dislikes = dislike
+                arr.append(serializeble_story(elem))
+            else:
+                return -2
+
+            arr.append(serializeble_story(elem))
+        return 1
+    else:
+        return 0
+
+
+def send_request_user_service(userid):
+
+    url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + userid
+
+    try:
+        r = requests.get(url, timeout=TIMEOUT)
+    except Timeout:
+        return -2
+
+    json_data = r.json()
+    return json_data['response']

@@ -35,6 +35,7 @@ paths:
 
 
 
+
   /story_list/<userid>:
     get:
       summary: Returns the list of stories that user userid have created.
@@ -48,7 +49,7 @@ paths:
       description: Returns the list of stories that user userid have created.
       responses:
         '200':    # status code
-          description: A JSON string with a result field equal to 1 if the there are some stories; a result field equal to 0 if there are no stories; a result field equal to -1 if the user isn't registered; a result field equal to -2 if there was a timeout in the user service.
+          description: A JSON string with a result field equal to 1 if the there are some stories; a result field equal to 0 if there are no stories; a result field equal to -1 if the user isn't registered; a result field equal to -2 if there was a timeout in the user service; -3 if one or more of the stories written by the user does not exists in the reaction database; -4 if the reactions service is not responding.
           content:
             application/json:
               schema:
@@ -62,9 +63,22 @@ paths:
                           * `0` - the user userid didn't write any stories
                           * `-1` - the user userid isn't registered
                           * `-2` - there was a timeout in the user service
+                          * `-3` - One or more of the stories written by the user does not exists in the reaction database
+                          * `-4` - the reactions service is not responding
                     stories:
                       type: string
                       description: the stories written by the user userid.
+                    message:
+                      type: string
+                      description: >
+                        Messages:
+                         * `'Timeout: the user service is not responding'`
+                         * `'One or more of the stories written by the user does not exists in the reaction database'`
+                         * `'Timeout: the reactions service is not responding'`
+                         * `'Here are the stories written by the user'`
+                         * `'No story has been found'`
+                         * `'The user does not exists'`
+
 
 
 
@@ -98,7 +112,7 @@ paths:
       description: Create a new story and returns the list of all stories created.
       responses:
         '200':    # status code
-          description: A JSON string with a result field that is equal to 1 if the story is created successfully; result is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service; -8 if the user service is offline; -9 if there was an error in the connection with the user service. In all of these cases an info message and the list of all stories created are returned.
+          description: A JSON string with a result field that is equal to 1 if the story is created successfully; result is equal to 0 if the user who send the request is not registered; -1, -2 or -3 if there was an error in the creation of the story; -4 if the story is too long (over 1000 characters); -5 if the story is too short; -6 if the story is invalid; -7 if there was a timeout in the user service; -8 if the user service is offline; -9 if there was an error in the connection with the user service; -10 if one or more of the stories written by the user does not exists in the reaction database; -11 if the reactions service is not responding. In all of these cases an info message and the list of all stories created are returned.
           content:
             application/json:
               schema:
@@ -119,6 +133,8 @@ paths:
                           * `-7` - there was a timeout in the user service
                           * `-8` - wrong parameters text and roll
                           * `-9` - the userid is None.
+                          * `-10` - One or more of the stories written by the user does not exists in the reaction database
+                          * `-11` - the reactions service is not responding
                     message:
                       type: string
                       description: >
@@ -134,6 +150,8 @@ paths:
                          * `'Timeout: the user service is not responding'` - there was a timeout in the user service
                          * `'The userid is None'`
                          * `'Wrong parameters'`
+                         * `'One or more of the stories written by the user does not exists in the reaction database'`
+                         * `'the reactions service is not responding'`
                     stories:
                       type: string
                       description: the list of stories of all users.
@@ -142,7 +160,7 @@ paths:
       description: Returns the list of all stories created.
       responses:
         '200':    # status code
-          description: If there is at least one story, a JSON string is returned with a result field equal to 1 and the list of stories. Vice versa a JSON string is returned with a result field equal to 0.
+          description: If there is at least one story, a JSON string is returned with a result field equal to 1 and the list of stories; 0 if there are no stories; -1 if one or more of the stories written by the user does not exists in the reaction database; -2 if the reactions service is not responding.
           content:
             application/json:
               schema:
@@ -154,8 +172,20 @@ paths:
                         types:
                           * `1` - there are at least one story
                           * `0` - there is no story
+                          * `-1` - One or more of the stories written by the user does not exists in the reaction database
+                          * `-2` - the reactions service is not responding
                     stories:
                       description: the list of stories.
+                    message:
+                      type: string
+                      description: >
+                        Messages:
+                         * `'Stories'`
+                         * `'No stories'`
+                         * `'One or more of the stories written by the user does not exists in the reaction database'`
+                         * `'Timeout: the reactions service is not responding'`
+
+
 
 
 
@@ -172,7 +202,7 @@ paths:
       description: Returns the story storyid
       responses:
         '200':    # status code
-          description:  If the story exists, A JSON string is returned with the field result equal to 1 and the story field equal to the story. Vice versa a JSON string is returned with the field result equal to 0.
+          description:  If the story exists, A JSON string is returned with the field result equal to 1 and the story field equal to the story; 0 if the story is not in the database; -1 if the story does not exists in the reaction database; -2 if the reactions service is not responding.
           content:
             application/json:
               schema:
@@ -184,9 +214,19 @@ paths:
                       types:
                         * `1` - the story storyid is in the database.
                         * `0` - The story is not in the database.
+                        * `-1` - The story does not exists in the reaction database
+                        * `-2` - the reactions service is not responding
                   story:
                     type: string
                     description: the story storyid, if exists.
+                  message:
+                    type: string
+                    description: >
+                      Messages:
+                       * `'The story does not exists in the reaction database'`
+                       * `'Timeout: the reactions service is not responding'`
+                       * `'The story exists'`
+                       * `'The story does not exists'`
 
 
   /stories/random:
@@ -195,7 +235,7 @@ paths:
       description: Return a random history if any history exists.
       responses:
         '200':    # status code
-          description: If any stories have been published, a JSON string with a result field equal to 1 and the story field equal to the random story is returned. Vice versa the result field is equal to 0 and no story is inserted.
+          description: If any stories have been published, a JSON string with a result field equal to 1 and the story field equal to the random story is returned. 0 if there is no story; -1 if the story does not exists in the reaction database; -2 if the reactions service is not responding.
           content:
             application/json:
               schema:
@@ -207,9 +247,19 @@ paths:
                         types:
                           * `1` - there are at least one story.
                           * `0` - there is no story.
+                          * `-1` - The story does not exists in the reaction database
+                          * `-2` - the reactions service is not responding
                     story:
                       type: string
                       description: the random story, if there is at least one.
+                    message:
+                      type: string
+                      description: >
+                        Messages:
+                         * `'The story does not exists in the reaction database'`
+                         * `'Timeout: the reactions service is not responding'`
+                         * `'The story exists'`
+                         * `'The story does not exists'`
 
 
 
@@ -238,7 +288,7 @@ paths:
       description: Returns the stories published in a certain interval of time.
       responses:
         '200':    # status code
-          description: If any stories have been published in that period of time, a JSON string is returned with a result field equal to 1 and a stories field equal to the stories. Vice versa the result field is equal to 0. The result filed is equal to -1 if the initial date is greater than the final date. The result field is equal to -2 if there was a timeout in the serviece and a message of error is returned. The result field is equal to -3 if userid not inserted; -4 if there was a timeout and the user service is not responding and -5 if the user does not exists.
+          description: If any stories have been published in that period of time, a JSON string is returned with a result field equal to 1 and a stories field equal to the stories. Vice versa the result field is equal to 0. The result filed is equal to -1 if the initial date is greater than the final date. The result field is equal to -2 if there was a timeout in the serviece and a message of error is returned. The result field is equal to -3 if userid not inserted; -4 if there was a timeout and the user service is not responding and -5 if the user does not exists; -6 if the story does not exists in the reaction database; -7 if the reactions service is not responding.
           content:
             application/json:
               schema:
@@ -255,6 +305,8 @@ paths:
                         * `-3` - userid not inserted.
                         * `-4` - Timeout: the user service is not responding
                         * `-5` - the user does not exists.
+                        * `-6` - The story does not exists in the reaction database
+                        * `-7` - the reactions service is not responding
                   stories:
                     type: string
                     description: the stories in that interval, if there are some.
@@ -262,10 +314,14 @@ paths:
                     type: string
                     description: >
                       Messages:
-                       * `'Wrong dates'`
                        * `'userid not inserted'`
-                       * `'The user service is offline'`
-                       * `'There was an error in the connection with the user service'`
+                       * `'Timeout: the user service is not responding'`
+                       * `'The user does not exists'`
+                       * `'Wrong dates'`
+                       * `'One or more of the stories written by the user does not exists in the reaction database'`
+                       * `'Timeout: the reactions service is not responding'`
+                       * `'No story has been found'`
+                       * `'At least one story has been found'`
 
 
 
@@ -351,7 +407,20 @@ paths:
                         * `0` - No history has been found.
                         * `-1` - The string to search is empty
                         * `-2` - The text inserted is None
+                        * `-3` - One or more of the stories does not exists in the reaction database
+                        * `-4` - Timeout: the reactions service is not responding
                   stories:
                     type: string
                     description: The stories that match the searched string.
+                  message:
+                    type: string
+                    description: >
+                      Messages:
+                       * `'One or more of the stories does not exists in the reaction database'`
+                       * `'Timeout: the reactions service is not responding'`
+                       * `'No story has been found'`
+                       * `'At least one story has been found'`
+                       * `'The text inserted is empty'`
+                       * `'Story empty'`
+
 

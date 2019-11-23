@@ -1,7 +1,7 @@
 import unittest
 from stories_service.app import create_app
 from stories_service.database import db
-from stories_service.tests.restart_db import restart_db_tables
+from stories_service.restart_db import restart_db_tables
 import json
 
 _app = None
