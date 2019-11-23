@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 import json
 from stories_service.app import create_app
 from stories_service.database import db, Story
@@ -27,86 +28,32 @@ class TestNewStory(unittest.TestCase):
 
         with tested_app.test_client() as client:
 
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': roll}}), content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], 1)
+                    self.assertEqual(body['message'], "Story created")
 
 
 
 
-            # login
-            reply = client.post('/login',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            self.assertEqual(reply.status_code, 200)
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertEqual(q.text, "bird whale coffee bananas ladder glasses")
+                    self.assertEqual(q.dicenumber, 6)
 
 
-
-
-            reply = client.get('/stories')
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # post a new story
-            roll = json.dumps(["bird", "whale", "coffee", "bananas", "ladder", "glasses"])
-
-
-            reply = client.post('/stories?userid=1', data=dict(text="bird whale coffee bananas ladder glasses", roll=roll))
-
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(body['message'], "Story created")
-            self.assertEqual(len(body['stories']), 2)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-            secondStory = body['stories'][1]
-            self.assertEqual(secondStory['id'], 2)
-            self.assertEqual(secondStory['text'], 'bird whale coffee bananas ladder glasses')
-            #self.assertEqual(firstStory['dicenumber'], None)
-            #self.assertEqual(firstStory['like'], 42)
-            #self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(secondStory['author_id'], 1)
-
-
-
-
-            # check database entry
-            q = db.session.query(Story).order_by(Story.id.desc()).first()
-            self.assertEqual(q.text, "bird whale coffee bananas ladder glasses")
-            self.assertEqual(q.dicenumber, 6)
-
-
-            # logout
-            reply = client.post('/logout',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
 
 
 
@@ -128,78 +75,28 @@ class TestNewStory(unittest.TestCase):
         with tested_app.test_client() as client:
 
 
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
 
 
+                    # post a new story
 
-            # login
-            reply = client.post('/login',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "Just a new story for test purposes!", 'roll': roll}}), content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -6)
+                    self.assertEqual(body['message'], "Invalid story. Try again!")
 
-            self.assertEqual(reply.status_code, 200)
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
 
-
-
-
-            reply = client.get('/stories')
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # post a new story
-            roll = json.dumps(["bird", "whale", "coffee", "bananas", "ladder", "glasses"])
-
-
-
-            reply = client.post('/stories?userid=1', data=dict(text="bird whale coffee bananas ladder glasses", roll=roll))
-
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], -6)
-            self.assertEqual(body['message'], "Invalid story. Try again!")
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # check database entry
-            q = db.session.query(Story).order_by(Story.id.desc()).first()
-            self.assertNotEqual(q.text, "Just a new story for test purposes!")
-
-
-            # logout
-            reply = client.post('/logout',
-                                data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
 
 
 
@@ -208,7 +105,6 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_short_story(self):
 
 
-
         global _app
         if _app is None:
             tested_app = create_app(debug=True)
@@ -218,80 +114,27 @@ class TestNewStory(unittest.TestCase):
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
 
 
+                    # post a new story
 
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "short story", 'roll': roll}}), content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -5)
+                    self.assertEqual(body['message'], "The number of words of the story must greater or equal of the number of resulted faces.")
 
-
-            # login
-            reply = client.post('/login',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            self.assertEqual(reply.status_code, 200)
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
-
-
-
-
-            reply = client.get('/stories')
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # post a new story
-            roll = json.dumps(["bird", "whale", "coffee", "bananas", "ladder", "glasses"])
-
-
-
-            reply = client.post('/stories?userid=1', data=dict(text="short story", roll=roll))
-
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], -5)
-            self.assertEqual(body['message'], "The number of words of the story must greater or equal of the number of resulted faces.")
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # check database entry
-            q = db.session.query(Story).order_by(Story.id.desc()).first()
-            self.assertNotEqual(q.text, "short story")
-
-
-            # logout
-            reply = client.post('/logout',
-                                data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
 
 
 
@@ -299,8 +142,6 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_too_long_story(self):
 
 
-
-
         global _app
         if _app is None:
             tested_app = create_app(debug=True)
@@ -310,88 +151,68 @@ class TestNewStory(unittest.TestCase):
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
 
 
+                    # post a new story
+
+                    text = ""
+                    for i in range(0, 2000):
+                        text = text + " a"
 
 
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': text, 'roll': roll}}), content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -4)
+                    self.assertEqual(body['message'], "The story is too long. The length is > 1000 characters.")
 
-            # login
-            reply = client.post('/login',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            self.assertEqual(reply.status_code, 200)
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
-
-
-
-
-            reply = client.get('/stories')
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # post a new story
-            roll = json.dumps(["bird", "whale", "coffee", "bananas", "ladder", "glasses"])
-
-            text = ""
-            for i in range(0, 2000):
-                text = text + " a"
-
-            reply = client.post('/stories?userid=1', data=dict(text=text, roll=roll))
-
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], -4)
-            self.assertEqual(body['message'], "The story is too long. The length is > 1000 characters.")
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
-
-
-
-
-            # check database entry
-            q = db.session.query(Story).order_by(Story.id.desc()).first()
-            self.assertNotEqual(q.text,text)
-
-
-            # logout
-            reply = client.post('/logout',
-                                data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
 
 
 
     def test_invalid_post_wrong_parameters(self):
 
 
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+
+
+                    # post a new story
+
+                    reply = client.post('/stories?userid=1')
+
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -8)
+                    self.assertEqual(body['message'], "Wrong parameters")
+
+
+
+    def test_invalid_post_wrong_parameters_text(self):
 
 
         global _app
@@ -403,67 +224,93 @@ class TestNewStory(unittest.TestCase):
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
 
 
 
+                    # post a new story
 
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
 
-            # login
-            reply = client.post('/login',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'roll': roll}}), content_type='application/json')
 
-            self.assertEqual(reply.status_code, 200)
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
-
-
-
-
-            reply = client.get('/stories')
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -8)
+                    self.assertEqual(body['message'], "Wrong parameters")
 
 
 
-
-            reply = client.post('/stories?userid=1')
-
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], -8)
-            self.assertEqual(body['message'], "Wrong parameters")
+    def test_invalid_post_wrong_parameters_roll(self):
 
 
-            # logout
-            reply = client.post('/logout',
-                                data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
 
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+        with tested_app.test_client() as client:
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+
+
+                    # post a new story
+
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses"}}),
+                                        content_type='application/json')
+
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -8)
+                    self.assertEqual(body['message'], "Wrong parameters")
 
 
 
     def test_invalid_post_wrong_format_user(self):
 
 
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
 
+        with tested_app.test_client() as client:
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+
+                user_request_mock.return_value = 1
+
+                with mock.patch('stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+
+                    # post a new story
+
+                    reply = client.post('/stories')
+
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -9)
+                    self.assertEqual(body['message'], "The userid is None")
+
+    def test_timeout_user_service(self):
 
         global _app
         if _app is None:
@@ -475,59 +322,240 @@ class TestNewStory(unittest.TestCase):
 
         with tested_app.test_client() as client:
 
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = -2
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': roll}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -7)
+                    self.assertEqual(body['message'], "Timeout: the user service is not responding")
+
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
+
+
+    def test_timeout_user_does_not_exists(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = -1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': roll}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], 0)
+                    self.assertEqual(body['message'], "The user does not exists")
+
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
 
 
 
 
-            # login
-            reply = client.post('/login',
-                             data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
+    def test_timeout_reactions_service(self):
 
-            self.assertEqual(reply.status_code, 200)
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
 
+        with tested_app.test_client() as client:
 
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
 
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = -1
 
-            reply = client.get('/stories')
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], 1)
-            self.assertEqual(len(body['stories']), 1)
-            firstStory = body['stories'][0]
-            self.assertEqual(firstStory['id'], 1)
-            self.assertEqual(firstStory['text'], 'Trial story of example admin user :)')
-            self.assertEqual(firstStory['dicenumber'], None)
-            self.assertEqual(firstStory['like'], 42)
-            self.assertEqual(firstStory['dislike'], None)
-            self.assertEqual(firstStory['author_id'], 1)
+                    # post a new story
 
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': roll}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -11)
+                    self.assertEqual(body['message'], "Timeout: the reactions service is not responding")
 
-
-
-            reply = client.post('/stories')
-
-
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['result'], -9)
-            self.assertEqual(body['message'], "The userid is None")
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
 
 
-            # logout
-            reply = client.post('/logout',
-                                data=json.dumps({
-                                "email": "example@example.com",
-                                "password": 'admin'}), content_type='application/json')
 
-            body = json.loads(str(reply.data, 'utf8'))
-            self.assertEqual(reply.status_code, 200)
-            self.assertEqual(body['response'], True)
-            self.assertEqual(body['user_id'], 1)
+
+    def test_reactions_service_story_not_found(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = -2
+
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': roll}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -10)
+                    self.assertEqual(body['message'], "One or more of the stories written by the user does not exists in the reaction database")
+
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, "bird whale coffee bananas ladder glasses")
+
+    def test_invalid_story_WrongFormatStoryError(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': 1, 'roll': roll}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -1)
+                    self.assertEqual(body['message'], "There was an error. Try again.")
+
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, 1)
+
+
+    def test_invalid_story_WrongFormatDiceError(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': 1}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -2)
+                    self.assertEqual(body['message'], "There was an error. Try again.")
+
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, 1)
+
+
+    def test_invalid_story_WrongFormatSingleDiceError(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': 1}}),
+                                        content_type='application/json')
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -2)
+                    self.assertEqual(body['message'], "There was an error. Try again.")
+
+                    # check database entry
+                    q = db.session.query(Story).order_by(Story.id.desc()).first()
+                    self.assertNotEqual(q.text, 1)
+
+
 
 
 

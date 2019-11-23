@@ -1,3 +1,3 @@
-from .stories import stories
+from .stories import stories_blueprint
 
-blueprints = [stories]
+blueprints = [stories_blueprint]
