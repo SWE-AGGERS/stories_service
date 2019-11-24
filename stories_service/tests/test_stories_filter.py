@@ -340,3 +340,74 @@ class TestStoryFilter(unittest.TestCase):
                     body = json.loads(str(reply.data, 'utf8'))
                     self.assertEqual(body['result'], -7)
                     self.assertEqual(body['message'], 'Timeout: the reactions service is not responding')
+
+
+    def test_filter_reactions_service_no_json(self):
+
+
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+
+
+                    # Filter correctly a time interval
+                    reply = client.post('/stories/filter')
+
+
+                    self.assertEqual(reply.status_code, 200)
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(body['result'], -2)
+                    self.assertEqual(body['message'], 'Missing params')
+
+
+
+    def test_filter_reactions_service_too_many_parameters(self):
+
+
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+
+
+                    # Filter correctly a time interval
+                    reply = client.post('/stories/filter', data=json.dumps({'info':
+                        {'userid': 1,
+                        'init_date': '2019-01-01',
+                        'end_date': '2019-12-01',
+                    }, 'prova': 1}),content_type = 'application/json')
+
+
+                    self.assertEqual(reply.status_code, 200)
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(body['result'], -2)
+                    self.assertEqual(body['message'], "Missing params")

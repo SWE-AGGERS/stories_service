@@ -543,20 +543,85 @@ class TestNewStory(unittest.TestCase):
 
                     # post a new story
 
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", 1]
+
                     reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
-                        'text': "bird whale coffee bananas ladder glasses", 'roll': 1}}),
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': roll}}),
                                         content_type='application/json')
                     body = json.loads(str(reply.data, 'utf8'))
                     self.assertEqual(reply.status_code, 200)
-                    self.assertEqual(body['result'], -2)
+                    self.assertEqual(body['result'], -3)
                     self.assertEqual(body['message'], "There was an error. Try again.")
 
                     # check database entry
                     q = db.session.query(Story).order_by(Story.id.desc()).first()
                     self.assertNotEqual(q.text, 1)
 
+    def test_invalid_story_wrong_parameters_text_roll(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'rolls': roll}}),
+                                        content_type='application/json')
 
 
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -8)
+                    self.assertEqual(body['message'], "Wrong parameters")
+
+
+
+    def test_invalid_story_wrong_parameters_text_roll_None(self):
+
+        global _app
+        if _app is None:
+            tested_app = create_app(debug=True)
+            _app = tested_app
+        else:
+            tested_app = _app
+        restart_db_tables(db, tested_app)
+
+        with tested_app.test_client() as client:
+
+            with mock.patch('stories_service.views.stories.send_request_user_service') as user_request_mock:
+                user_request_mock.return_value = 1
+
+                with mock.patch(
+                        'stories_service.views.stories.send_request_reactions_service') as reactions_request_mock:
+                    reactions_request_mock.return_value = 1
+
+                    # post a new story
+
+                    roll = ["bird", "whale", "coffee", "bananas", "ladder", "glasses"]
+                    reply = client.post('/stories?userid=1', data=json.dumps({'created_story': {
+                        'text': "bird whale coffee bananas ladder glasses", 'roll': None}}),
+                                        content_type='application/json')
+
+
+                    body = json.loads(str(reply.data, 'utf8'))
+                    self.assertEqual(reply.status_code, 200)
+                    self.assertEqual(body['result'], -8)
+                    self.assertEqual(body['message'], "Wrong parameters")
 
 
 if __name__ == '__main__':

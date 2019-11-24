@@ -5,18 +5,18 @@ nltk.download('wordnet')
 def check_storyV2(story,diceSet):
     # Tests on parameters
     if not isinstance(story, str):
-        raise WrongFormatStoryError("The story must be a string.\n")
+        raise WrongFormatStoryError("The story must be a string.")
     if len(story)>1000:
-        raise TooLongStoryError("The story is too long. The length is > 1000 characters\n")
+        raise TooLongStoryError("The story is too long. The length is > 1000 characters.")
     if not isinstance(diceSet, list):
-        raise WrongFormatDiceError("The dice set must be a list.\n")
+        raise WrongFormatDiceError("The dice set must be a list.")
     res = len(story.split())
     if res < len(diceSet):
         raise TooSmallStoryError(
-            "The number of words of the story must greater or equal of the number of resulted faces.\n")
+            "The number of words of the story must greater or equal of the number of resulted faces.")
     for elem in diceSet:
         if not isinstance(elem,str):
-            raise WrongFormatSingleDiceError("Every dice of the dice set must be a die.\n")
+            raise WrongFormatSingleDiceError("Every dice of the dice set must be a die.")
 
     found = True
     i = 0
@@ -43,7 +43,7 @@ def check_storyV2(story,diceSet):
             i = i+1
 
     if not found:
-        raise InvalidStory("Invalid story")
+        raise InvalidStory('Invalid story')
 
 
 
@@ -52,21 +52,21 @@ class WrongFormatStoryError(Exception):
         self.value = value
 
     def __str__(self):
-        return repr(self.value)
+        return str(self.value)
 
 class TooSmallStoryError(Exception):
     def __init__(self, value):
         self.value = value
 
     def __str__(self):
-        return repr(self.value)
+        return str(self.value)
 
 class WrongFormatDiceError(Exception):
     def __init__(self, value):
         self.value = value
 
     def __str__(self):
-        return repr(self.value)
+        return str(self.value)
 
 
 class TooLongStoryError(Exception):
@@ -74,16 +74,7 @@ class TooLongStoryError(Exception):
         self.value = value
 
     def __str__(self):
-        return repr(self.value)
-
-
-
-class SizeDiceSetFacesError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+        return str(self.value)
 
 
 
@@ -92,7 +83,7 @@ class WrongFormatSingleDiceError(Exception):
         self.value = value
 
     def __str__(self):
-        return repr(self.value)
+        return str(self.value)
 
 
 class InvalidStory(Exception):
@@ -100,11 +91,5 @@ class InvalidStory(Exception):
         self.value = value
 
     def __str__(self):
-        return repr(self.value)
+        return str(self.value)
 
-class WrongFormatSingleFaceError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)

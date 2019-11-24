@@ -3,7 +3,7 @@ import json
 from sqlalchemy import func
 from flask import Blueprint, request
 from stories_service.database import db, Story
-from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatDiceError, WrongFormatSingleDiceError, WrongFormatSingleFaceError, WrongFormatStoryError
+from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatSingleDiceError, WrongFormatStoryError
 import requests
 from requests.exceptions import Timeout
 import sys
@@ -170,8 +170,8 @@ def get_stories():
                     result = jsonify({"result": -8, "message": message, "stories": arr})
                     return result
 
-
-
+                """
+    
                 if (type(roll) is str):
                     roll = roll.replace("[", "")
                     roll = roll.replace("]", "")
@@ -179,6 +179,8 @@ def get_stories():
                     roll = roll.replace(" ", "")
                     aux = roll.split(",")
                     roll = aux
+                
+                """
 
                 if not isinstance(roll, list):
                     message = "There was an error. Try again."
@@ -200,11 +202,6 @@ def get_stories():
                 except WrongFormatStoryError:
                     # print('ERROR 1', file=sys.stderr)
                     code = -1
-                    message = "There was an error. Try again."
-
-                except WrongFormatDiceError:
-                    # print('ERROR 2', file=sys.stderr)
-                    code = -2
                     message = "There was an error. Try again."
 
                 except WrongFormatSingleDiceError:
