@@ -43,26 +43,32 @@ def story_list(userid):
     elif ris != -1:
 
 
-        allstories = db.session.query(Story).filter(Story.author_id == userid)
-
-        arr = []
+        allstories = db.session.query(Story).filter(Story.author_id == int(userid)).all()
 
 
-        ris = send_request_reactions_service(arr,allstories)
 
-        if ris == -2:
-            message = "One or more of the stories written by the user does not exists in the reaction database"
-            result = jsonify({"result": -3, "message": message})
-        elif ris == -1:
-            message = "Timeout: the reactions service is not responding"
-            result = jsonify({"result": -4, "message": message})
-        elif ris == 1:
-            message = "Here are the stories written by the user"
-            result = jsonify({"result": 1, "stories": arr, 'message': message})
+
+        if len(allstories) > 0:
+
+            arr = []
+
+
+            ris = send_request_reactions_service(arr,allstories)
+
+            if ris == -2:
+                message = "One or more of the stories written by the user does not exists in the reaction database"
+                result = jsonify({"result": -3, "message": message})
+            elif ris == -1:
+                message = "Timeout: the reactions service is not responding"
+                result = jsonify({"result": -4, "message": message})
+            else:
+                message = "Here are the stories written by the user"
+                result = jsonify({"result": 1, "stories": arr, 'message': message})
+            return result
         else:
             message = "No story has been found"
             result = jsonify({"result": 0, 'message': message})
-        return result
+            return result
     else:
         message = "The user does not exists"
         result = jsonify({"result": -1, 'message': message})
@@ -236,20 +242,23 @@ def get_stories():
     elif 'GET' == request.method:
 
         allstories = db.session.query(Story).all()
-        arr = []
-        ris = send_request_reactions_service(arr,allstories)
 
-        if ris == -2:
-            message = "One or more of the stories written by the user does not exists in the reaction database"
-            result = jsonify({"result": -1, "message": message})
-            return result
-        elif ris == -1:
-            message = "Timeout: the reactions service is not responding"
-            result = jsonify({"result": -2, "message": message})
-            return result
-        elif ris == 1:
-            message = "Stories"
-            return jsonify({"result": 1, "stories": arr, 'message': message})
+        if len(allstories) > 0:
+
+            arr = []
+            ris = send_request_reactions_service(arr,allstories)
+
+            if ris == -2:
+                message = "One or more of the stories written by the user does not exists in the reaction database"
+                result = jsonify({"result": -1, "message": message})
+                return result
+            elif ris == -1:
+                message = "Timeout: the reactions service is not responding"
+                result = jsonify({"result": -2, "message": message})
+                return result
+            else:
+                message = "Stories"
+                return jsonify({"result": 1, "stories": arr, 'message': message})
         else:
             message = "No stories"
             return jsonify({"result": 0, 'message': message})
