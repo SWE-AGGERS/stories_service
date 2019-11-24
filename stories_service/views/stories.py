@@ -3,7 +3,8 @@ import json
 from sqlalchemy import func
 from flask import Blueprint, request
 from stories_service.database import db, Story
-from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, WrongFormatSingleDiceError, WrongFormatStoryError
+from stories_service.views.check_stories import check_storyV2, InvalidStory, TooLongStoryError, TooSmallStoryError, \
+    WrongFormatSingleDiceError, WrongFormatStoryError
 import requests
 from requests.exceptions import Timeout
 import sys
@@ -25,14 +26,8 @@ def story_exists(storyid):
     return result
 
 
-
-
 @stories_blueprint.route('/story_list/<userid>')
 def story_list(userid):
-
-
-
-
     ris = send_request_user_service(userid)
 
     if ris == -2:
@@ -42,18 +37,13 @@ def story_list(userid):
 
     elif ris != -1:
 
-
         allstories = db.session.query(Story).filter(Story.author_id == int(userid)).all()
-
-
-
 
         if len(allstories) > 0:
 
             arr = []
 
-
-            ris = send_request_reactions_service(arr,allstories)
+            ris = send_request_reactions_service(arr, allstories)
 
             if ris == -2:
                 message = "One or more of the stories written by the user does not exists in the reaction database"
@@ -75,13 +65,6 @@ def story_list(userid):
         return result
 
 
-
-
-
-
-
-
-
 @stories_blueprint.route('/stories', methods=['POST', 'GET'])
 def get_stories():
     if 'POST' == request.method:
@@ -95,10 +78,7 @@ def get_stories():
 
         allstories = db.session.query(Story).all()
 
-
-
-        ris = send_request_reactions_service(arr=arr,allstories=allstories)
-
+        ris = send_request_reactions_service(arr=arr, allstories=allstories)
 
         if ris == -2:
             message = "One or more of the stories written by the user does not exists in the reaction database"
@@ -114,7 +94,7 @@ def get_stories():
 
             if userid == None:
                 message = "The userid is None"
-                result = jsonify({"result": -9, "message": message,  "stories": arr})
+                result = jsonify({"result": -9, "message": message, "stories": arr})
                 return result
 
             ris = send_request_user_service(userid)
@@ -130,19 +110,17 @@ def get_stories():
 
                 code = 0
                 message = "The user does not exists"
-                result = jsonify({"result": code, "message": message,  "stories": arr})
+                result = jsonify({"result": code, "message": message, "stories": arr})
                 return result
             else:
 
                 # otherwise I create the story and I verify that it is valid
-
 
                 # Create a new story
                 new_story = Story()
                 new_story.author_id = userid
                 new_story.likes = 0
                 new_story.dislikes = 0
-
 
                 if request.json == None:
                     message = "Wrong parameters"
@@ -164,14 +142,13 @@ def get_stories():
                     result = jsonify({"result": -8, "message": message, "stories": arr})
                     return result
 
-
                 if text == None or roll == None:
                     message = "Wrong parameters"
                     result = jsonify({"result": -8, "message": message, "stories": arr})
                     return result
 
                 """
-    
+
                 if (type(roll) is str):
                     roll = roll.replace("[", "")
                     roll = roll.replace("]", "")
@@ -179,7 +156,7 @@ def get_stories():
                     roll = roll.replace(" ", "")
                     aux = roll.split(",")
                     roll = aux
-                
+
                 """
 
                 if not isinstance(roll, list):
@@ -226,10 +203,7 @@ def get_stories():
                     code = -6
                     message = "Invalid story. Try again!"
 
-
-
-
-            result = jsonify({"result": code, "message": message,  "stories": arr})
+            result = jsonify({"result": code, "message": message, "stories": arr})
             return result
 
 
@@ -243,7 +217,7 @@ def get_stories():
         if len(allstories) > 0:
 
             arr = []
-            ris = send_request_reactions_service(arr,allstories)
+            ris = send_request_reactions_service(arr, allstories)
 
             if ris == -2:
                 message = "One or more of the stories written by the user does not exists in the reaction database"
@@ -261,15 +235,10 @@ def get_stories():
             return jsonify({"result": 0, 'message': message})
 
 
-
-
-
 @stories_blueprint.route('/stories/<storyid>', methods=['GET'])
 def get_story_detail(storyid):
     q = db.session.query(Story).filter_by(id=storyid)
     story = q.first()
-
-
 
     if story != None:
 
@@ -295,12 +264,10 @@ def get_story_detail(storyid):
         return result
 
 
-
 @stories_blueprint.route('/stories/random', methods=['GET'])
 def random_story():
     q = db.session.query(Story).order_by(func.random()).limit(1)
     random_story_from_db = q.first()
-
 
     if random_story_from_db != None:
 
@@ -326,17 +293,12 @@ def random_story():
         return result
 
 
-
-
-
 @stories_blueprint.route('/stories/filter', methods=['POST'])
 def filter_stories():
     if request.method == 'POST':
 
         message = "Missing params"
         result = jsonify({"result": -2, "message": message})
-
-
 
         if request.json == None:
             return result
@@ -353,8 +315,6 @@ def filter_stories():
         except KeyError:
             return result
 
-
-
         ris = send_request_user_service(userid)
 
         if ris == -2:
@@ -365,32 +325,25 @@ def filter_stories():
 
         elif ris == -1:
 
-
             message = "The user does not exists"
             result = jsonify({"result": -5, "message": message})
             return result
 
         else:
 
-
             if init_date > end_date:
                 message = "The init date is greater than the end date"
-                result = jsonify({"result": -1, "message" : message})
+                result = jsonify({"result": -1, "message": message})
                 return result
 
-
-            f_stories = db.session.query(Story)\
-                .filter(Story.date >= init_date)\
-                .filter(Story.date <= end_date)\
+            f_stories = db.session.query(Story) \
+                .filter(Story.date >= init_date) \
+                .filter(Story.date <= end_date) \
                 .all()
-
-
 
             if len(f_stories) != 0:
 
-
                 arr = []
-
 
                 ris = send_request_reactions_service(arr, f_stories)
 
@@ -410,16 +363,8 @@ def filter_stories():
                 return result
 
 
-
-
-
-
-
-
-
 @stories_blueprint.route('/stories/remove/<storyid>', methods=['POST'])
 def remove_story(storyid):
-
     message = ""
     result = -1
 
@@ -448,8 +393,6 @@ def remove_story(storyid):
 
     else:
 
-
-
         # Remove story
         q = db.session.query(Story).filter_by(id=storyid)
         story = q.first()
@@ -469,20 +412,16 @@ def remove_story(storyid):
         return res
 
 
-
 @stories_blueprint.route('/search_story', methods=["GET"])
 def index():
-
-
     message = "Story empty"
     result = jsonify({"result": -2, 'message': message})
-
 
     if request.json == None:
         return result
 
     if len(request.json) != 1:
-        return  result
+        return result
 
     try:
         story = request.json['story']
@@ -491,15 +430,12 @@ def index():
     except KeyError:
         return result
 
-
     if search_story == None:
         message = "Story empty"
         result = jsonify({"result": -2, 'message': message})
         return result
 
-
     if search_story != ' ' and search_story != '':
-
 
         allstories = find_story(text=search_story)
 
@@ -528,8 +464,6 @@ def index():
         return jsonify({"result": -1, 'message': message})
 
 
-
-
 def find_story(text):
     result = Story.query.filter(func.lower(Story.text).contains(func.lower(text)))
     return result if result.count() > 0 else None
@@ -537,24 +471,16 @@ def find_story(text):
 
 def serializeble_story(story):
     return {'id': story.id,
-     'text': story.text,
-     'dicenumber': story.dicenumber,
-     'date': story.date.strftime("%d/%m/%Y"),
-     'like': story.likes,
-     'dislike': story.dislikes,
-     'author_id': story.author_id}
+            'text': story.text,
+            'dicenumber': story.dicenumber,
+            'date': story.date.strftime("%d/%m/%Y"),
+            'like': story.likes,
+            'dislike': story.dislikes,
+            'author_id': story.author_id}
 
 
-
-
-
-
-def send_request_reactions_service(arr,allstories):
-
-
+def send_request_reactions_service(arr, allstories):
     if allstories is not None:
-
-
 
         for elem in allstories:
 
@@ -582,8 +508,7 @@ def send_request_reactions_service(arr,allstories):
 
 
 def send_request_user_service(userid):
-
-    url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + userid
+    url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + str(userid)
 
     try:
         r = requests.get(url, timeout=TIMEOUT)
@@ -593,4 +518,30 @@ def send_request_user_service(userid):
     json_data = r.json()
     return json_data['response']
 
+
+
+"""
+
+def call_reaction_service(id):
+
+
+    url = 'http://' + REACTIONS_SERVICE_IP + ':' + REACTIONS_SERVICE_PORT + '/reactions/' + str(id)
+
+
+    try:
+        r = requests.get(url, timeout=TIMEOUT)
+    except Timeout:
+        dict = {
+            "result": -1
+        }
+        return dict
+
+    dict = {
+        "result": 1,
+        'reply': r
+    }
+
+    return dict
+
+"""
 
