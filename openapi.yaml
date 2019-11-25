@@ -81,6 +81,58 @@ paths:
 
 
 
+  /story_list/<userid>/<limit>:
+    get:
+      summary: Returns the list of stories of length limit that user userid have created.
+      parameters:
+        - in: path
+          name: userid
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get the stories who wrote
+        - in: path
+          name: limit
+          schema:
+            type: integer
+          required: true
+          description: Number of stories required.
+      description: Returns the list of stories of length limit that user userid have created.
+      responses:
+        '200':    # status code
+          description: A JSON string with a result field equal to 1 if the there are some stories; a result field equal to 0 if there are no stories; a result field equal to -1 if the user isn't registered; a result field equal to -2 if there was a timeout in the user service; -3 if one or more of the stories written by the user does not exists in the reaction database; -4 if the reactions service is not responding; -5 if the parameter limit is < 1.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: integer
+                      description: >
+                        types:
+                          * `1` - the user userid wrote some stories
+                          * `0` - the user userid didn't write any stories
+                          * `-1` - the user userid isn't registered
+                          * `-2` - there was a timeout in the user service
+                          * `-3` - One or more of the stories written by the user does not exists in the reaction database
+                          * `-4` - the reactions service is not responding
+                          * `-5` - limit < 1
+
+                    stories:
+                      type: string
+                      description: the stories written by the user userid.
+                    message:
+                      type: string
+                      description: >
+                        Messages:
+                         * `'Timeout: the user service is not responding'`
+                         * `'One or more of the stories written by the user does not exists in the reaction database'`
+                         * `'Timeout: the reactions service is not responding'`
+                         * `'Here are the stories written by the user'`
+                         * `'No story has been found'`
+                         * `'The user does not exists'`
+                         * `'limit < 1'`
+
 
   /stories:
     post:

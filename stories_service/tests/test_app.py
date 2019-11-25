@@ -22,6 +22,12 @@ class Test_app(unittest.TestCase):
         self.assertEqual(tested_app.config['TESTING'], True)
         self.assertEqual(tested_app.config['LOGIN_DISABLED'], False)
         self.assertEqual(tested_app.config['WTF_CSRF_ENABLED'], True)
+        print(tested_app, file = sys.stderr)
+        self.assertNotEqual(create_app(debug=True), None)
+        self.assertNotEqual(tested_app, None)
+        print(tested_app.app_context(), file=sys.stderr)
+
+
 
 
 

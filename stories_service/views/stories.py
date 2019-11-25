@@ -8,11 +8,15 @@ from stories_service.views.check_stories import check_storyV2, InvalidStory, Too
 import requests
 from requests.exceptions import Timeout
 import sys
-from stories_service.constants import USER_SERVICE_IP, USER_SERVICE_PORT, REACTIONS_SERVICE_IP, REACTIONS_SERVICE_PORT
+from stories_service.constants import USERS_SERVICE_IP, USERS_SERVICE_PORT, REACTIONS_SERVICE_IP, REACTIONS_SERVICE_PORT
+from sqlalchemy import desc
+from stories_service.constants import TIMEOUT_SERVICES
+
+
 
 stories_blueprint = Blueprint('stories_blueprint', __name__)
 
-TIMEOUT = 5
+
 
 
 @stories_blueprint.route('/story_exists/<storyid>')
@@ -63,6 +67,53 @@ def story_list(userid):
         message = "The user does not exists"
         result = jsonify({"result": -1, 'message': message})
         return result
+
+
+
+@stories_blueprint.route('/story_list/<userid>/<limit>')
+def story_list_limit_stories(userid,limit):
+    ris = send_request_user_service(userid)
+
+    if ris == -2:
+        message = "Timeout: the user service is not responding"
+        result = jsonify({"result": -2, "message": message})
+        return result
+
+    elif ris != -1:
+
+
+        if int(limit) < 1:
+            message = "limit < 1"
+            result = jsonify({"result": -5, "message": message})
+            return result
+
+        allstories = db.session.query(Story).order_by(desc(Story.date)).filter(Story.author_id == int(userid)).limit(int(limit)).all()
+
+        if len(allstories) > 0:
+
+            arr = []
+
+            ris = send_request_reactions_service(arr, allstories)
+
+            if ris == -2:
+                message = "One or more of the stories written by the user does not exists in the reaction database"
+                result = jsonify({"result": -3, "message": message})
+            elif ris == -1:
+                message = "Timeout: the reactions service is not responding"
+                result = jsonify({"result": -4, "message": message})
+            else:
+                message = "Here are the stories written by the user"
+                result = jsonify({"result": 1, "stories": arr, 'message': message})
+            return result
+        else:
+            message = "No story has been found"
+            result = jsonify({"result": 0, 'message': message})
+            return result
+    else:
+        message = "The user does not exists"
+        result = jsonify({"result": -1, 'message': message})
+        return result
+
 
 
 @stories_blueprint.route('/stories', methods=['POST', 'GET'])
@@ -487,7 +538,7 @@ def send_request_reactions_service(arr, allstories):
             url = 'http://' + REACTIONS_SERVICE_IP + ':' + REACTIONS_SERVICE_PORT + '/reactions/' + str(elem.id)
 
             try:
-                r = requests.get(url, timeout=TIMEOUT)
+                r = requests.get(url, timeout=TIMEOUT_SERVICES)
             except Timeout:
                 return -1
 
@@ -508,40 +559,19 @@ def send_request_reactions_service(arr, allstories):
 
 
 def send_request_user_service(userid):
-    url = 'http://' + USER_SERVICE_IP + ':' + USER_SERVICE_PORT + '/user_exists/' + str(userid)
+    url = 'http://' + USERS_SERVICE_IP + ':' + USERS_SERVICE_PORT + '/user_exist/' + str(userid)
 
     try:
-        r = requests.get(url, timeout=TIMEOUT)
+        r = requests.get(url, timeout=TIMEOUT_SERVICES)
     except Timeout:
         return -2
 
     json_data = r.json()
-    return json_data['response']
+    reply = json_data['registered']
+    if not reply:
+        return -1
+    else:
+        return 1
 
 
-
-"""
-
-def call_reaction_service(id):
-
-
-    url = 'http://' + REACTIONS_SERVICE_IP + ':' + REACTIONS_SERVICE_PORT + '/reactions/' + str(id)
-
-
-    try:
-        r = requests.get(url, timeout=TIMEOUT)
-    except Timeout:
-        dict = {
-            "result": -1
-        }
-        return dict
-
-    dict = {
-        "result": 1,
-        'reply': r
-    }
-
-    return dict
-
-"""
 
