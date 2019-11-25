@@ -541,6 +541,8 @@ def send_request_reactions_service(arr, allstories):
                 r = requests.get(url, timeout=TIMEOUT_SERVICES)
             except Timeout:
                 return -1
+            except Exception:
+                return -1
 
             json_data = r.json()
             story_id = json_data['story_id']
@@ -564,6 +566,8 @@ def send_request_user_service(userid):
     try:
         r = requests.get(url, timeout=TIMEOUT_SERVICES)
     except Timeout:
+        return -2
+    except Exception:
         return -2
 
     json_data = r.json()
