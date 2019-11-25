@@ -10,6 +10,8 @@ _app = None
 class TestApp(unittest.TestCase):
 
 
+    """
+
     def test_story_detail_positive(self):
 
 
@@ -38,7 +40,7 @@ class TestApp(unittest.TestCase):
                     self.assertEqual(body['result'], 1)
                     self.assertEqual(body['message'], 'The story exists')
 
-
+    """
 
 
     def test_story_detail_negative(self):
