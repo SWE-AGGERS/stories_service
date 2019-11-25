@@ -13,13 +13,7 @@ class TestStoryFilter(unittest.TestCase):
     def test_filter_positive(self):
 
 
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -51,12 +45,7 @@ class TestStoryFilter(unittest.TestCase):
     def test_filter_positive_no_stories(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -90,12 +79,7 @@ class TestStoryFilter(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -124,12 +108,7 @@ class TestStoryFilter(unittest.TestCase):
     def test_filter_wrong_dates(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -158,12 +137,7 @@ class TestStoryFilter(unittest.TestCase):
 
     def test_filter_wrong_user(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -194,13 +168,7 @@ class TestStoryFilter(unittest.TestCase):
     def test_filter_user_service_timeout(self):
 
 
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -231,13 +199,7 @@ class TestStoryFilter(unittest.TestCase):
     def test_filter_user_does_not_exists(self):
 
 
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -270,12 +232,7 @@ class TestStoryFilter(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -309,12 +266,7 @@ class TestStoryFilter(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -346,12 +298,7 @@ class TestStoryFilter(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -380,12 +327,7 @@ class TestStoryFilter(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:

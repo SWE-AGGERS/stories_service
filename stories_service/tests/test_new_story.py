@@ -6,7 +6,8 @@ from stories_service.database import db, Story
 from stories_service.restart_db import restart_db_tables
 import sys
 
-_app = None
+
+
 
 class TestNewStory(unittest.TestCase):
 
@@ -17,13 +18,7 @@ class TestNewStory(unittest.TestCase):
 
 
 
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -63,13 +58,7 @@ class TestNewStory(unittest.TestCase):
 
 
 
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -105,12 +94,7 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_short_story(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -142,12 +126,7 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_too_long_story(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -183,12 +162,7 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_wrong_parameters(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -215,12 +189,7 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_wrong_parameters_text(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -250,12 +219,7 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_wrong_parameters_roll(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -284,12 +248,7 @@ class TestNewStory(unittest.TestCase):
     def test_invalid_post_wrong_format_user(self):
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -312,12 +271,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_timeout_user_service(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -347,12 +301,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_timeout_user_does_not_exists(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -384,12 +333,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_timeout_reactions_service(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -421,12 +365,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_reactions_service_story_not_found(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -455,12 +394,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_invalid_story_WrongFormatStoryError(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -490,12 +424,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_invalid_story_WrongFormatDiceError(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -524,12 +453,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_invalid_story_WrongFormatSingleDiceError(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -559,12 +483,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_invalid_story_wrong_parameters_text_roll(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -593,12 +512,7 @@ class TestNewStory(unittest.TestCase):
 
     def test_invalid_story_wrong_parameters_text_roll_None(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -624,5 +538,3 @@ class TestNewStory(unittest.TestCase):
                     self.assertEqual(body['message'], "Wrong parameters")
 
 
-if __name__ == '__main__':
-    unittest.main()

@@ -5,19 +5,14 @@ from flask import json, jsonify
 from stories_service.restart_db import restart_db_tables
 from unittest import mock
 
-_app = None
+
 
 
 class TestDeleteStory(unittest.TestCase):
 
     def test_delete_story_negative_timeout_user_service(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -35,12 +30,7 @@ class TestDeleteStory(unittest.TestCase):
 
     def test_delete_story_negative_user_not_registered(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -57,12 +47,7 @@ class TestDeleteStory(unittest.TestCase):
 
     def test_delete_story_positive(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -80,12 +65,7 @@ class TestDeleteStory(unittest.TestCase):
 
     def test_delete_story_negative_wrong_story(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -102,12 +82,7 @@ class TestDeleteStory(unittest.TestCase):
 
     def test_delete_story_negative_story_written_by_another_user(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -140,12 +115,7 @@ class TestDeleteStory(unittest.TestCase):
 
     def test_delete_story_negative_user_not_inserted(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -158,8 +128,4 @@ class TestDeleteStory(unittest.TestCase):
                 body = json.loads(str(reply.data, 'utf8'))
                 self.assertEqual(body['result'], -2)
                 self.assertEqual(body['message'], 'userid not inserted')
-
-if __name__ == '__main__':
-    unittest.main()
-
 

@@ -50,12 +50,7 @@ class TestRandomStory(unittest.TestCase):
 
     def test_no_story(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -85,12 +80,8 @@ class TestRandomStory(unittest.TestCase):
 
     def test_reactions_service_problem(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -116,12 +107,7 @@ class TestRandomStory(unittest.TestCase):
 
     def test_reactions_service_timeout(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -141,9 +127,3 @@ class TestRandomStory(unittest.TestCase):
                     self.assertEqual(body['message'], 'Timeout: the reactions service is not responding')
 
 
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()

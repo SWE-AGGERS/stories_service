@@ -45,12 +45,7 @@ class TestApp(unittest.TestCase):
 
     def test_story_detail_negative(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -73,12 +68,7 @@ class TestApp(unittest.TestCase):
 
     def test_story_detail_reactions_service_problem(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -102,12 +92,7 @@ class TestApp(unittest.TestCase):
 
     def test_story_detail_reactions_service_timeout(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:

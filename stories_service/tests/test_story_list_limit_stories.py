@@ -12,12 +12,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_positive(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -41,12 +36,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_negative(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -70,12 +60,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_negative_user_service_timeout(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -98,12 +83,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_negative_user_does_not_exists(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -127,12 +107,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_negative_reactions_service_timeout(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -156,12 +131,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_negative_reactions_service_problems(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -184,12 +154,7 @@ class Story_list_limit(unittest.TestCase):
 
     def test_story_list_limit_negative_wrong_limit(self):
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:

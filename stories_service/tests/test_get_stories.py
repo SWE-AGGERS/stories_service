@@ -6,7 +6,7 @@ from stories_service.database import db, Story
 from stories_service.restart_db import restart_db_tables
 import sys
 
-_app = None
+
 
 class TestNewStory(unittest.TestCase):
 
@@ -18,12 +18,7 @@ class TestNewStory(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -46,13 +41,7 @@ class TestNewStory(unittest.TestCase):
 
 
 
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -86,12 +75,7 @@ class TestNewStory(unittest.TestCase):
 
 
 
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -114,14 +98,7 @@ class TestNewStory(unittest.TestCase):
     def test_get_stories_negative_reaction_service_problems(self):
 
 
-
-
-        global _app
-        if _app is None:
-            tested_app = create_app(debug=True)
-            _app = tested_app
-        else:
-            tested_app = _app
+        tested_app = create_app(debug=True)
         restart_db_tables(db, tested_app)
 
         with tested_app.test_client() as client:
@@ -137,3 +114,4 @@ class TestNewStory(unittest.TestCase):
                     self.assertEqual(reply.status_code, 200)
                     self.assertEqual(body['result'], -1)
                     self.assertEqual(body['message'], 'One or more of the stories written by the user does not exists in the reaction database')
+
