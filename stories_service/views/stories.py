@@ -463,7 +463,7 @@ def remove_story(storyid):
         return res
 
 
-@stories_blueprint.route('/search_story', methods=["GET"])
+@stories_blueprint.route('/search_story', methods=["POST"])
 def index():
     message = "Story empty"
     result = jsonify({"result": -2, 'message': message})
