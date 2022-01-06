@@ -1,4 +1,4 @@
-celery==4.3.0
+celery==5.2.2
 flakon
 Flask==1.1.1
 Flask-Login==0.4.1
